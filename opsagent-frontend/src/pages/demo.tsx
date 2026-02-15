@@ -123,7 +123,35 @@ export function DemoPage() {
     {
       id: 3,
       time: '3:04 AM',
-      title: 'Alerts Search for the Incident',
+      title: 'Error Rate Accelerating',
+      narrator: 'Pipeline aggregations (derivative + cumulative_sum) show the error rate isn\'t just rising -- it\'s accelerating at +22%/min. Without intervention: total failure in 8 minutes.',
+      icon: <TrendingUp className="h-5 w-5" />,
+      route: '/incident',
+      hiddenGem: 'Pipeline Aggregations',
+      content: (
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 justify-center">
+            <div className="rounded-lg border border-critical/30 bg-critical-bg px-4 py-3 text-center">
+              <span className="text-[10px] text-text-dim">Velocity</span>
+              <p className="text-xl font-bold font-mono text-critical">+22%/min</p>
+            </div>
+            <div className="rounded-lg border border-high/30 bg-high-bg px-4 py-3 text-center">
+              <span className="text-[10px] text-text-dim">Acceleration</span>
+              <p className="text-xl font-bold font-mono text-high">+4.2%/min\u00B2</p>
+            </div>
+            <div className="rounded-lg border border-critical/30 bg-critical-bg px-4 py-3 text-center">
+              <span className="text-[10px] text-text-dim">SLA Breach</span>
+              <p className="text-xl font-bold font-mono text-critical">~8 min</p>
+            </div>
+          </div>
+          <EsqlBlock query='FROM logs-* | WHERE @timestamp > NOW() - 30 MINUTES AND service.name == "orders-service" AND log.level == "ERROR" | EVAL bucket = DATE_TRUNC(5 MINUTES, @timestamp) | STATS error_count = COUNT(*) BY bucket | SORT bucket ASC' />
+        </div>
+      ),
+    },
+    {
+      id: 4,
+      time: '3:04 AM',
+      title: 'Percolate Matches 3 Alert Rules',
       narrator: 'We don\'t search FOR alerts -- alerts search for INCIDENTS. The incident document is percolated against 18 stored rules. 3 match instantly. Workflows fire.',
       icon: <ArrowRightLeft className="h-5 w-5" />,
       route: '/alerts',
@@ -152,7 +180,7 @@ export function DemoPage() {
               </div>
               <div className="flex items-center gap-1.5 rounded border border-elastic/30 bg-elastic-bg px-2 py-1">
                 <Zap className="h-3 w-3 text-elastic" />
-                <span className="text-[10px] text-elastic">Auto-remediation</span>
+                <span className="text-[10px] text-elastic">Audit logged</span>
               </div>
             </div>
           </div>
@@ -160,44 +188,16 @@ export function DemoPage() {
       ),
     },
     {
-      id: 4,
-      time: '3:04 AM',
-      title: 'Error Rate Accelerating',
-      narrator: 'Pipeline aggregations (derivative + cumulative_sum) show the error rate isn\'t just rising -- it\'s accelerating at +22%/min. Without intervention: total failure in 8 minutes.',
-      icon: <TrendingUp className="h-5 w-5" />,
-      route: '/incident',
-      hiddenGem: 'Pipeline Aggregations',
-      content: (
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 justify-center">
-            <div className="rounded-lg border border-critical/30 bg-critical-bg px-4 py-3 text-center">
-              <span className="text-[10px] text-text-dim">Velocity</span>
-              <p className="text-xl font-bold font-mono text-critical">+22%/min</p>
-            </div>
-            <div className="rounded-lg border border-high/30 bg-high-bg px-4 py-3 text-center">
-              <span className="text-[10px] text-text-dim">Acceleration</span>
-              <p className="text-xl font-bold font-mono text-high">+4.2%/min\u00B2</p>
-            </div>
-            <div className="rounded-lg border border-critical/30 bg-critical-bg px-4 py-3 text-center">
-              <span className="text-[10px] text-text-dim">SLA Breach</span>
-              <p className="text-xl font-bold font-mono text-critical">~8 min</p>
-            </div>
-          </div>
-          <EsqlBlock query='FROM logs-* | WHERE @timestamp > NOW() - 30 MINUTES AND service.name == "orders-service" AND log.level == "ERROR" | EVAL bucket = DATE_TRUNC(5 MINUTES, @timestamp) | STATS error_count = COUNT(*) BY bucket | SORT bucket ASC' />
-        </div>
-      ),
-    },
-    {
       id: 5,
       time: '3:05 AM',
       title: 'Self-Healing Activated',
-      narrator: 'The Workflow Engine doesn\'t just alert -- it acts. Connection pool scaled from 20 to 50. Service pods restarting. The on-call SRE wakes up to a Slack message saying the fix is already deployed.',
+      narrator: 'The Workflow Engine doesn\'t just alert -- it gives the SRE everything they need. Root cause identified, blast radius mapped, Jira ticket created with full context. The on-call SRE wakes up knowing exactly what happened and what to do. Zero context-switching.',
       icon: <CheckCircle className="h-5 w-5" />,
       route: '/agent-activity',
       content: (
         <div className="space-y-4">
           <div className="rounded-lg border border-elastic/30 bg-elastic-bg p-4">
-            <p className="text-sm font-bold text-elastic mb-3">Autonomous Resolution</p>
+            <p className="text-sm font-bold text-elastic mb-3">Autonomous Incident Response</p>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs">
                 <CheckCircle className="h-3.5 w-3.5 text-low" />
@@ -213,11 +213,11 @@ export function DemoPage() {
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <CheckCircle className="h-3.5 w-3.5 text-low" />
-                <span className="text-text">Connection pool scaled: <span className="font-mono">20 \u2192 50</span></span>
+                <span className="text-text">Full audit logged to <span className="font-mono text-elastic">incident-audit</span></span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <Zap className="h-3.5 w-3.5 text-elastic animate-pulse-glow" />
-                <span className="text-text font-medium">Service recovering... ETA 90 seconds</span>
+                <span className="text-text font-medium">SRE has full context -- zero context-switching needed</span>
               </div>
             </div>
           </div>

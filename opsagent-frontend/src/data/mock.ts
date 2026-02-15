@@ -136,7 +136,7 @@ export const agentActivities: AgentActivity[] = [
     timestamp: '2026-02-15T03:02:30Z',
     status: 'completed',
     detail: 'Hybrid search across incident-knowledge: lexical + semantic results fused via RRF, reranked with .rerank-v1-elasticsearch. Found 3 similar past incidents involving connection pool exhaustion.',
-    toolUsed: 'hybrid_rag_pipeline',
+    toolUsed: 'hybrid_rag_search',
     esqlQuery: 'FROM incident-knowledge METADATA _score | FORK (WHERE MATCH(title, "orders 500 connection pool") | SORT _score DESC | LIMIT 30) (WHERE MATCH(content, "orders 500 connection pool") | SORT _score DESC | LIMIT 30) | FUSE RRF | RERANK "orders 500 connection pool" ON content | LIMIT 5'
   },
   {
@@ -147,17 +147,17 @@ export const agentActivities: AgentActivity[] = [
     timestamp: '2026-02-15T03:03:15Z',
     status: 'completed',
     detail: 'Found statistically unusual term: "connection_pool_exhausted" (bg_count: 8, doc_count: 1,247, score: 97.1). This is NOT the most common error -- it is the most SURPRISING one. Root cause: PostgreSQL connection pool maxed at 20 connections.',
-    toolUsed: 'statistical_anomaly_finder'
+    toolUsed: 'anomaly_detector'
   },
   {
     id: '3',
     agent: 'opsagent',
-    action: 'Graph Explore -- blast radius mapping',
+    action: 'Service error breakdown -- downstream impact',
     target: 'orders-service dependencies',
     timestamp: '2026-02-15T03:03:45Z',
     status: 'completed',
-    detail: 'Mapped 5 affected services via Graph Explore API. Critical path: api-gateway -> orders-service -> payment-gateway. Cart-service serving stale data. Notification-service queue backing up.',
-    toolUsed: 'graph_explore'
+    detail: 'Checked downstream services for cascading failures. Found 5 affected services: payment-gateway (degraded), cart-service (stale data), notification-service (queue backup), inventory-service (timeout errors). Critical path: payment-service -> orders-service -> checkout.',
+    toolUsed: 'service_error_breakdown'
   },
   {
     id: '4',
@@ -167,7 +167,7 @@ export const agentActivities: AgentActivity[] = [
     timestamp: '2026-02-15T03:04:10Z',
     status: 'completed',
     detail: 'Pipeline aggregations (derivative + cumulative_sum) show error rate accelerating at +22%/min. Prediction: complete service failure in 8 minutes. SLA breach imminent.',
-    toolUsed: 'error_trend_predictor',
+    toolUsed: 'error_trend_analysis',
     esqlQuery: 'FROM logs-* | WHERE @timestamp > NOW() - 30 MINUTES AND service.name == "orders-service" AND log.level == "ERROR" | EVAL bucket = DATE_TRUNC(5 MINUTES, @timestamp) | STATS error_count = COUNT(*) BY bucket | SORT bucket ASC'
   },
   {
@@ -178,7 +178,7 @@ export const agentActivities: AgentActivity[] = [
     timestamp: '2026-02-15T03:04:30Z',
     status: 'completed',
     detail: 'Incident document percolated against 18 stored alert rules. 3 matches: "orders-critical-500s", "cascading-failure-detector", "revenue-impact-alert". Triggering notification workflows.',
-    toolUsed: 'percolate_alerts'
+    toolUsed: 'platform.core.search'
   },
   {
     id: '6',
@@ -203,12 +203,12 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '8',
     agent: 'workflow',
-    action: 'Auto-remediation -- connection pool scale',
-    target: 'orders-service config',
+    action: 'Audit log -- incident response recorded',
+    target: 'incident-audit index',
     timestamp: '2026-02-15T03:05:30Z',
-    status: 'running',
-    detail: 'Workflow triggered: scaling orders-service PostgreSQL connection pool from 20 -> 50 connections. Restarting service pods with updated config. ETA: 90 seconds.',
-    toolUsed: 'remediation_workflow'
+    status: 'completed',
+    detail: 'Full incident response audit logged: root cause (connection_pool_exhausted, score 97.1), blast radius (5 services), actions taken (Slack alert, Jira OPS-2847), time to resolution (3m 12s). SRE has full context before touching a keyboard.',
+    toolUsed: 'elasticsearch.index'
   },
 ]
 
@@ -311,7 +311,7 @@ export const pipelineSteps: PipelineStep[] = [
   { name: 'fork', label: 'FORK', description: 'Parallel lexical + semantic search branches', status: 'completed', duration: 45, resultCount: 60 },
   { name: 'fuse', label: 'FUSE RRF', description: 'Reciprocal Rank Fusion merges results', status: 'completed', duration: 12, resultCount: 30 },
   { name: 'rerank', label: 'RERANK', description: 'ML model re-scores by relevance', status: 'completed', duration: 89, resultCount: 5 },
-  { name: 'completion', label: 'LLM', description: 'Agent synthesizes response', status: 'completed', duration: 340, resultCount: 1 },
+  { name: 'synthesis', label: 'Agent Analysis', description: 'OpsAgent synthesizes findings into report', status: 'completed', duration: 340, resultCount: 1 },
 ]
 
 export const errorTrendData = [
@@ -335,7 +335,7 @@ export const significantTermsData = [
 
 export const agentColors: Record<AgentType, string> = {
   opsagent: '#00bfb3',
-  workflow: '#8844ff',
+  workflow: '#ffaa00',
 }
 
 export const agentLabels: Record<AgentType, string> = {
