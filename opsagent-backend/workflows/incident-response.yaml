@@ -1,0 +1,169 @@
+name: Self-Healing Infrastructure Response
+enabled: true
+triggers:
+  - type: manual
+  - type: webhook
+
+inputs:
+  - name: incident_description
+    type: string
+  - name: affected_service
+    type: string
+  - name: reported_severity
+    type: string
+
+steps:
+  # =========================================================================
+  # PHASE 1: DATA GATHERING
+  # =========================================================================
+
+  # Step 1: Percolate the incident against stored alert rules
+  - name: check_alert_rules
+    type: elasticsearch.search
+    with:
+      index: alert-rules
+      query:
+        percolate:
+          field: query
+          document:
+            message: "{{ inputs.incident_description }}"
+            service.name: "{{ inputs.affected_service }}"
+            log.level: "ERROR"
+
+  # Step 2: Get recent error counts for the affected service
+  - name: recent_errors
+    type: elasticsearch.esql
+    with:
+      query: >
+        FROM logs-opsagent-*
+        | WHERE service.name == "{{ inputs.affected_service }}"
+          AND @timestamp > NOW() - 1 hour
+          AND log.level IN ("ERROR", "FATAL")
+        | STATS error_count = COUNT(*), last_error = MAX(@timestamp)
+          BY error.type
+        | SORT error_count DESC
+        | LIMIT 10
+
+  # Step 3: Get service owner information
+  - name: get_service_owner
+    type: elasticsearch.search
+    with:
+      index: service-owners
+      query:
+        term:
+          service_name: "{{ inputs.affected_service }}"
+
+  # =========================================================================
+  # PHASE 2: AGENT ANALYSIS (bidirectional - workflow calls agent)
+  # =========================================================================
+
+  # Step 4: Have OpsAgent analyze all gathered data
+  - name: agent_analysis
+    type: ai.agent
+    with:
+      agent_id: ops-agent
+      message: >
+        INCIDENT RESPONSE WORKFLOW TRIGGERED.
+
+        Service: {{ inputs.affected_service }}
+        Reported severity: {{ inputs.reported_severity }}
+        Description: {{ inputs.incident_description }}
+
+        DATA GATHERED BY WORKFLOW:
+
+        Alert rules matched: {{ steps.check_alert_rules.output.hits.total.value }} rule(s)
+        Alert details: {{ steps.check_alert_rules.output.hits.hits | json }}
+
+        Recent error breakdown: {{ steps.recent_errors.output | json }}
+
+        Service owner: {{ steps.get_service_owner.output.hits.hits.0._source | json }}
+
+        Please perform full triage and investigation:
+        1. Analyze the error breakdown and identify the primary issue.
+        2. Use your tools to check error trends and find similar past incidents.
+        3. Use the anomaly_detector tool to find statistically unusual patterns.
+        4. Provide severity classification, root cause hypothesis, and recommended actions.
+
+  # =========================================================================
+  # PHASE 3: SEVERITY-BASED NOTIFICATION
+  # =========================================================================
+
+  # Step 5: Extract severity for routing
+  - name: extract_severity
+    type: ai.prompt
+    with:
+      prompt: >
+        Extract ONLY the severity classification from this analysis.
+        Respond with exactly one of: P1, P2, P3, P4. Nothing else.
+        Analysis: {{ steps.agent_analysis.output.content }}
+
+  # Step 6: Send Slack notification
+  - name: notify_slack
+    type: slack
+    with:
+      channel: "{{ steps.get_service_owner.output.hits.hits.0._source.slack_channel | default: '#ops-alerts' }}"
+      message: >
+        *Self-Healing Infrastructure Intelligence Alert*
+
+        *Service:* {{ inputs.affected_service }}
+        *Severity:* {{ steps.extract_severity.output.content }}
+        *Alert Rules Matched:* {{ steps.check_alert_rules.output.hits.total.value }}
+
+        *AI Analysis:*
+        {{ steps.agent_analysis.output.content }}
+
+        *Owner:* {{ steps.get_service_owner.output.hits.hits.0._source.owner_team | default: 'unassigned' }}
+        *Runbook:* {{ steps.get_service_owner.output.hits.hits.0._source.runbook_url | default: 'none' }}
+
+  # Step 7: Create Jira ticket for P1/P2
+  - name: check_needs_jira
+    type: if
+    condition: "{{ steps.extract_severity.output.content contains 'P1' or steps.extract_severity.output.content contains 'P2' }}"
+    steps:
+      - name: create_jira_ticket
+        type: jira
+        with:
+          project: "OPS"
+          issue_type: "Incident"
+          summary: "[{{ steps.extract_severity.output.content }}] {{ inputs.affected_service }} - {{ inputs.incident_description | truncate: 80 }}"
+          description: >
+            h2. Incident Report
+
+            *Service:* {{ inputs.affected_service }}
+            *Severity:* {{ steps.extract_severity.output.content }}
+            *Reported:* {{ execution.timestamp }}
+
+            h3. Description
+            {{ inputs.incident_description }}
+
+            h3. AI Analysis
+            {{ steps.agent_analysis.output.content }}
+
+            h3. Alert Rules Matched
+            {{ steps.check_alert_rules.output.hits.total.value }} rule(s) matched
+
+            h3. Service Owner
+            Team: {{ steps.get_service_owner.output.hits.hits.0._source.owner_team }}
+            Escalation: {{ steps.get_service_owner.output.hits.hits.0._source.escalation_email }}
+          priority: "{{ steps.extract_severity.output.content == 'P1' | ternary: 'Highest', 'High' }}"
+          assignee: "{{ steps.get_service_owner.output.hits.hits.0._source.owner_email }}"
+
+  # =========================================================================
+  # PHASE 4: AUDIT LOGGING
+  # =========================================================================
+
+  # Step 8: Log the full incident response for audit trail
+  - name: log_incident
+    type: elasticsearch.index
+    with:
+      index: opsagent-incident-log
+      document:
+        "@timestamp": "{{ execution.timestamp }}"
+        incident_description: "{{ inputs.incident_description }}"
+        affected_service: "{{ inputs.affected_service }}"
+        reported_severity: "{{ inputs.reported_severity }}"
+        classified_severity: "{{ steps.extract_severity.output.content }}"
+        alert_rules_matched: "{{ steps.check_alert_rules.output.hits.total.value }}"
+        agent_analysis: "{{ steps.agent_analysis.output.content }}"
+        owner_team: "{{ steps.get_service_owner.output.hits.hits.0._source.owner_team }}"
+        workflow_execution_id: "{{ execution.id }}"

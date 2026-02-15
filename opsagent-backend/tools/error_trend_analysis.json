@@ -1,0 +1,33 @@
+{
+  "id": "error_trend_analysis",
+  "type": "esql",
+  "description": "Analyze error rate trends over time buckets for a service to determine if the situation is improving, stable, or worsening. Computes error counts, total request counts, and error rate percentage per time bucket. Use this to assess incident trajectory and whether remediation actions are working.",
+  "configuration": {
+    "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | EVAL is_error = CASE(log.level == \"ERROR\" OR log.level == \"FATAL\", 1, 0) | EVAL time_bucket = DATE_TRUNC(?bucket_size, @timestamp) | STATS error_count = SUM(is_error), total_count = COUNT(*) BY time_bucket | EVAL error_rate_pct = ROUND(error_count / total_count * 100, 2) | SORT time_bucket ASC | LIMIT 100",
+    "params": {
+      "service_name": {
+        "type": "keyword",
+        "description": "The name of the service to analyze error trends for (e.g., payment-service)"
+      },
+      "time_range": {
+        "type": "keyword",
+        "description": "Total time range to analyze, e.g. '6 hours', '1 day', '3 days'"
+      },
+      "bucket_size": {
+        "type": "keyword",
+        "description": "Time bucket granularity, e.g. '5 minutes', '15 minutes', '1 hour'"
+      }
+    }
+  },
+  "_fallbacks": {
+    "note": "If the primary query fails, use these fallback versions in order.",
+    "tier_2_simplified": {
+      "description": "Simplified without EVAL CASE, just counts ERROR/FATAL logs per bucket.",
+      "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range AND log.level IN (\"ERROR\", \"FATAL\") | EVAL time_bucket = DATE_TRUNC(?bucket_size, @timestamp) | STATS error_count = COUNT(*) BY time_bucket | SORT time_bucket ASC | LIMIT 100"
+    },
+    "tier_3_keyword": {
+      "description": "Basic count of errors over the full time range, no time bucketing.",
+      "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | STATS total = COUNT(*), errors = COUNT_DISTINCT(CASE(log.level == \"ERROR\" OR log.level == \"FATAL\", @timestamp, NULL)) BY log.level | SORT errors DESC | LIMIT 20"
+    }
+  }
+}

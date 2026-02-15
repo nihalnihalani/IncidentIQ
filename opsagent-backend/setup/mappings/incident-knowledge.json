@@ -1,0 +1,74 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "semantic_title": {
+        "type": "semantic_text"
+      },
+      "description": {
+        "type": "text"
+      },
+      "semantic_description": {
+        "type": "semantic_text",
+        "chunking_settings": {
+          "strategy": "sentence",
+          "max_chunk_size": 250,
+          "sentence_overlap": 1
+        }
+      },
+      "resolution": {
+        "type": "text"
+      },
+      "semantic_resolution": {
+        "type": "semantic_text",
+        "chunking_settings": {
+          "strategy": "sentence",
+          "max_chunk_size": 250,
+          "sentence_overlap": 1
+        }
+      },
+      "root_cause": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "severity": {
+        "type": "keyword"
+      },
+      "category": {
+        "type": "keyword"
+      },
+      "affected_services": {
+        "type": "keyword"
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "mttr_minutes": {
+        "type": "integer"
+      },
+      "incident_date": {
+        "type": "date"
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "runbook_url": {
+        "type": "keyword"
+      },
+      "author": {
+        "type": "keyword"
+      }
+    }
+  }
+}

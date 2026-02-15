@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "service_name": {
+        "type": "keyword"
+      },
+      "owner_team": {
+        "type": "keyword"
+      },
+      "owner_email": {
+        "type": "keyword"
+      },
+      "escalation_email": {
+        "type": "keyword"
+      },
+      "slack_channel": {
+        "type": "keyword"
+      },
+      "pagerduty_service_id": {
+        "type": "keyword"
+      },
+      "tier": {
+        "type": "keyword"
+      },
+      "dependencies": {
+        "type": "keyword"
+      },
+      "repository_url": {
+        "type": "keyword"
+      },
+      "runbook_url": {
+        "type": "keyword"
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "_NOTE": "FALLBACK version of hybrid_rag_search. Use this if FORK/FUSE is unavailable or produces errors. Simple keyword MATCH + SORT without hybrid retrieval.",
+  "id": "hybrid_rag_search",
+  "type": "esql",
+  "description": "Search the incident knowledge base for similar past incidents using keyword text matching on title and description. Fallback version without FORK/FUSE hybrid search.",
+  "configuration": {
+    "query": "FROM incident-knowledge METADATA _score | WHERE MATCH(title, ?query) OR MATCH(description, ?query) | SORT _score DESC | LIMIT ?result_count | KEEP title, description, resolution, root_cause, severity, category, affected_services, mttr_minutes, _score",
+    "params": {
+      "query": {
+        "type": "text",
+        "description": "Natural language description of the incident or symptoms to search for"
+      },
+      "result_count": {
+        "type": "integer",
+        "description": "Number of results to return (default 5, max 20)"
+      }
+    }
+  }
+}

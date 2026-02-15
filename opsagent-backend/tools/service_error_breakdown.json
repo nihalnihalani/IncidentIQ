@@ -1,0 +1,33 @@
+{
+  "id": "service_error_breakdown",
+  "type": "esql",
+  "description": "Break down errors for a service by error type, showing count and percentage of each error type. Also shows the most recent occurrence of each error. Use this to understand WHICH errors are happening, not just how many.",
+  "configuration": {
+    "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND log.level IN (\"ERROR\", \"FATAL\") AND @timestamp > NOW() - ?time_range | STATS error_count = COUNT(*), last_seen = MAX(@timestamp), sample_message = MAX(error.message) BY error.type | SORT error_count DESC | LIMIT ?result_count",
+    "params": {
+      "service_name": {
+        "type": "keyword",
+        "description": "The name of the service to break down errors for"
+      },
+      "time_range": {
+        "type": "keyword",
+        "description": "Time range to analyze, e.g. '1 hour', '30 minutes', '6 hours'"
+      },
+      "result_count": {
+        "type": "integer",
+        "description": "Number of top error types to return (default 10)"
+      }
+    }
+  },
+  "_fallbacks": {
+    "note": "If the primary query fails, use these fallback versions in order.",
+    "tier_2_simplified": {
+      "description": "Without sample_message aggregation, just counts by error type.",
+      "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND log.level IN (\"ERROR\", \"FATAL\") AND @timestamp > NOW() - ?time_range | STATS error_count = COUNT(*) BY error.type | SORT error_count DESC | LIMIT ?result_count"
+    },
+    "tier_3_keyword": {
+      "description": "Just counts errors by log level, no error.type breakdown.",
+      "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | STATS count = COUNT(*) BY log.level | SORT count DESC | LIMIT 10"
+    }
+  }
+}

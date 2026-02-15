@@ -1,0 +1,23 @@
+{
+  "_STATUS": "OPTIONAL - Platinum license risk. CATEGORIZE function may not be available on all deployments. Do NOT include in MVP demo unless confirmed available. Use service_error_breakdown as the safe alternative.",
+  "id": "discover_log_patterns",
+  "type": "esql",
+  "description": "Discover recurring log message patterns for a service using CATEGORIZE to automatically cluster log messages into groups. Shows the most frequent patterns with their count. WARNING: CATEGORIZE requires Platinum license and may not be available on all Elasticsearch deployments.",
+  "configuration": {
+    "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | STATS pattern_count = COUNT(*), first_seen = MIN(@timestamp), last_seen = MAX(@timestamp) BY category = CATEGORIZE(message) | SORT pattern_count DESC | LIMIT ?result_count",
+    "params": {
+      "service_name": {
+        "type": "keyword",
+        "description": "The name of the service to analyze log patterns for"
+      },
+      "time_range": {
+        "type": "keyword",
+        "description": "Time range to look back, e.g. '1 hour', '30 minutes', '6 hours'"
+      },
+      "result_count": {
+        "type": "integer",
+        "description": "Number of top patterns to return (default 10)"
+      }
+    }
+  }
+}

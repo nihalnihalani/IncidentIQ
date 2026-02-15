@@ -1,0 +1,23 @@
+{
+  "_NOTE": "FALLBACK version of error_trend_analysis. Use this if EVAL CASE or DATE_TRUNC produces errors. Simplified version that just counts ERROR/FATAL logs per time bucket.",
+  "id": "error_trend_analysis",
+  "type": "esql",
+  "description": "Count error logs per time bucket for a service. Fallback version without error rate calculation.",
+  "configuration": {
+    "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range AND log.level IN (\"ERROR\", \"FATAL\") | EVAL time_bucket = DATE_TRUNC(?bucket_size, @timestamp) | STATS error_count = COUNT(*) BY time_bucket | SORT time_bucket ASC | LIMIT 100",
+    "params": {
+      "service_name": {
+        "type": "keyword",
+        "description": "The name of the service to analyze error trends for"
+      },
+      "time_range": {
+        "type": "keyword",
+        "description": "Total time range to analyze, e.g. '6 hours', '1 day'"
+      },
+      "bucket_size": {
+        "type": "keyword",
+        "description": "Time bucket granularity, e.g. '5 minutes', '15 minutes', '1 hour'"
+      }
+    }
+  }
+}

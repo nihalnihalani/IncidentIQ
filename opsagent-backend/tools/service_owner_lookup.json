@@ -1,0 +1,15 @@
+{
+  "_STATUS": "OPTIONAL - Tech preview risk. LOOKUP JOIN requires index mode 'lookup' and is still in tech preview. Reported issues on Serverless at Cal Hacks. Do NOT include in MVP demo. Use platform.core.search on service-owners index as the safe alternative.",
+  "id": "service_owner_lookup",
+  "type": "esql",
+  "description": "Look up the owning team, escalation contacts, and dependencies for a service using LOOKUP JOIN. WARNING: LOOKUP JOIN is tech preview and requires the service-owners index to be in 'lookup' mode (single shard). May produce unhelpful errors on Serverless.",
+  "configuration": {
+    "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name | STATS log_count = COUNT(*), last_seen = MAX(@timestamp) BY service.name | LOOKUP JOIN service-owners ON service.name | KEEP service.name, owner_team, owner_email, escalation_email, slack_channel, tier, dependencies, runbook_url, log_count, last_seen | LIMIT 1",
+    "params": {
+      "service_name": {
+        "type": "keyword",
+        "description": "The name of the service to look up ownership for"
+      }
+    }
+  }
+}

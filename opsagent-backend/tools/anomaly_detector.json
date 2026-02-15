@@ -1,0 +1,105 @@
+{
+  "id": "anomaly_detector",
+  "type": "index_search",
+  "description": "Search logs for anomalous patterns using Elasticsearch aggregations including significant_terms to find statistically unusual error types and terms that appear disproportionately in the current time window compared to the overall baseline. Use this to discover the SURPRISING errors driving an incident, not just the most common ones. Also supports pipeline aggregations for trend prediction.",
+  "configuration": {
+    "index_pattern": "logs-opsagent-*",
+    "fields": [
+      "service.name",
+      "log.level",
+      "error.type",
+      "error.message",
+      "http.response.status_code",
+      "@timestamp",
+      "host.name",
+      "message"
+    ]
+  },
+  "_usage_hints": {
+    "significant_terms_query": {
+      "description": "Use platform.core.search with this query body to find statistically unusual error types for a service in the last hour vs its overall baseline. significant_terms uses chi-squared statistical analysis.",
+      "query_body": {
+        "size": 0,
+        "query": {
+          "bool": {
+            "must": [
+              {"term": {"service.name": "REPLACE_SERVICE_NAME"}},
+              {"range": {"@timestamp": {"gte": "now-1h"}}}
+            ]
+          }
+        },
+        "aggs": {
+          "unusual_errors": {
+            "significant_terms": {
+              "field": "error.type",
+              "size": 10
+            }
+          },
+          "unusual_messages": {
+            "significant_terms": {
+              "field": "error.message.keyword",
+              "size": 10
+            }
+          }
+        }
+      }
+    },
+    "pipeline_agg_trend_query": {
+      "description": "Use platform.core.search with this query body to detect error rate trends using pipeline aggregations (derivative). A positive derivative means errors are increasing.",
+      "query_body": {
+        "size": 0,
+        "query": {
+          "bool": {
+            "must": [
+              {"term": {"service.name": "REPLACE_SERVICE_NAME"}},
+              {"range": {"@timestamp": {"gte": "now-6h"}}}
+            ]
+          }
+        },
+        "aggs": {
+          "errors_over_time": {
+            "date_histogram": {
+              "field": "@timestamp",
+              "fixed_interval": "15m"
+            },
+            "aggs": {
+              "error_count": {
+                "filter": {
+                  "terms": {"log.level": ["ERROR", "FATAL"]}
+                }
+              },
+              "error_rate_derivative": {
+                "derivative": {
+                  "buckets_path": "error_count._count"
+                }
+              },
+              "error_rate_moving_avg": {
+                "moving_avg": {
+                  "buckets_path": "error_count._count",
+                  "window": 4,
+                  "model": "simple"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "percolate_check_query": {
+      "description": "Use platform.core.search against the alert-rules index with a percolate query to find which alert rules match a given incident.",
+      "query_body": {
+        "query": {
+          "percolate": {
+            "field": "query",
+            "document": {
+              "message": "REPLACE_WITH_ERROR_MESSAGE",
+              "service.name": "REPLACE_SERVICE_NAME",
+              "log.level": "ERROR",
+              "error.type": "REPLACE_ERROR_TYPE"
+            }
+          }
+        }
+      }
+    }
+  }
+}

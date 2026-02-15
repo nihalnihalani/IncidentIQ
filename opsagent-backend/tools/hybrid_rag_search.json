@@ -1,0 +1,29 @@
+{
+  "id": "hybrid_rag_search",
+  "type": "esql",
+  "description": "Search the incident knowledge base for similar past incidents using hybrid retrieval. Combines lexical text matching on titles with semantic vector search on descriptions, fused with Reciprocal Rank Fusion (RRF) for best-of-both-worlds relevance. Use this when investigating incidents to find past resolutions and root causes.",
+  "configuration": {
+    "query": "FROM incident-knowledge METADATA _score | FORK (WHERE MATCH(title, ?query) | SORT _score DESC | LIMIT 20) (WHERE MATCH(semantic_description, ?query) | SORT _score DESC | LIMIT 20) | FUSE RRF WITH {\"rank_constant\": 60} | SORT _score DESC | LIMIT ?result_count | KEEP title, description, resolution, root_cause, severity, category, affected_services, mttr_minutes, _score",
+    "params": {
+      "query": {
+        "type": "text",
+        "description": "Natural language description of the incident or symptoms to search for"
+      },
+      "result_count": {
+        "type": "integer",
+        "description": "Number of results to return (default 5, max 20)"
+      }
+    }
+  },
+  "_fallbacks": {
+    "note": "If the primary FORK/FUSE query fails, use these fallback versions in order.",
+    "tier_2_simplified": {
+      "description": "Semantic-only search without FORK/FUSE, for environments where FORK is unavailable.",
+      "query": "FROM incident-knowledge METADATA _score | WHERE MATCH(semantic_description, ?query) | SORT _score DESC | LIMIT ?result_count | KEEP title, description, resolution, root_cause, severity, category, affected_services, mttr_minutes, _score"
+    },
+    "tier_3_keyword": {
+      "description": "Basic keyword text match fallback. Works on any ES version.",
+      "query": "FROM incident-knowledge METADATA _score | WHERE MATCH(title, ?query) OR MATCH(description, ?query) | SORT _score DESC | LIMIT ?result_count | KEEP title, description, resolution, root_cause, severity, category, affected_services, mttr_minutes, _score"
+    }
+  }
+}

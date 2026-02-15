@@ -1,0 +1,61 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "query": {
+        "type": "percolator"
+      },
+      "rule_name": {
+        "type": "keyword"
+      },
+      "rule_description": {
+        "type": "text"
+      },
+      "severity": {
+        "type": "keyword"
+      },
+      "category": {
+        "type": "keyword"
+      },
+      "owner_team": {
+        "type": "keyword"
+      },
+      "notification_channel": {
+        "type": "keyword"
+      },
+      "enabled": {
+        "type": "boolean"
+      },
+      "cooldown_minutes": {
+        "type": "integer"
+      },
+      "last_triggered": {
+        "type": "date"
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "created_by": {
+        "type": "keyword"
+      },
+      "message": {
+        "type": "text"
+      },
+      "log.level": {
+        "type": "keyword"
+      },
+      "service.name": {
+        "type": "keyword"
+      },
+      "error.type": {
+        "type": "keyword"
+      },
+      "http.response.status_code": {
+        "type": "integer"
+      }
+    }
+  }
+}

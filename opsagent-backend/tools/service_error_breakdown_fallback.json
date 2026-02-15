@@ -1,0 +1,19 @@
+{
+  "_NOTE": "FALLBACK version of service_error_breakdown. Use this if MAX(error.message) aggregation fails. Simplified version that just counts errors by log level.",
+  "id": "service_error_breakdown",
+  "type": "esql",
+  "description": "Count logs by log level for a service. Fallback version without error.type breakdown.",
+  "configuration": {
+    "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | STATS count = COUNT(*) BY log.level | SORT count DESC | LIMIT 10",
+    "params": {
+      "service_name": {
+        "type": "keyword",
+        "description": "The name of the service to analyze"
+      },
+      "time_range": {
+        "type": "keyword",
+        "description": "Time range to analyze, e.g. '1 hour', '30 minutes'"
+      }
+    }
+  }
+}

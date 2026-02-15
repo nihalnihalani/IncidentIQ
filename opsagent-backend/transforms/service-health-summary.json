@@ -1,0 +1,96 @@
+{
+  "id": "service-health-summary",
+  "description": "Continuously aggregates logs into per-service health metrics every 5 minutes. Creates a materialized view of service health that agents can query instantly without scanning raw logs.",
+  "source": {
+    "index": "logs-opsagent-*"
+  },
+  "dest": {
+    "index": "service-health-realtime"
+  },
+  "pivot": {
+    "group_by": {
+      "service.name": {
+        "terms": {
+          "field": "service.name"
+        }
+      },
+      "time_bucket": {
+        "date_histogram": {
+          "field": "@timestamp",
+          "fixed_interval": "5m"
+        }
+      }
+    },
+    "aggregations": {
+      "total_requests": {
+        "value_count": {
+          "field": "@timestamp"
+        }
+      },
+      "error_count": {
+        "filter": {
+          "terms": {
+            "log.level": ["ERROR", "FATAL"]
+          }
+        }
+      },
+      "avg_duration_ms": {
+        "avg": {
+          "field": "event.duration"
+        }
+      },
+      "p95_duration_ms": {
+        "percentiles": {
+          "field": "event.duration",
+          "percents": [95]
+        }
+      },
+      "p99_duration_ms": {
+        "percentiles": {
+          "field": "event.duration",
+          "percents": [99]
+        }
+      },
+      "status_2xx": {
+        "filter": {
+          "range": {
+            "http.response.status_code": {
+              "gte": 200,
+              "lt": 300
+            }
+          }
+        }
+      },
+      "status_4xx": {
+        "filter": {
+          "range": {
+            "http.response.status_code": {
+              "gte": 400,
+              "lt": 500
+            }
+          }
+        }
+      },
+      "status_5xx": {
+        "filter": {
+          "range": {
+            "http.response.status_code": {
+              "gte": 500,
+              "lt": 600
+            }
+          }
+        }
+      }
+    }
+  },
+  "sync": {
+    "time": {
+      "field": "@timestamp",
+      "delay": "60s"
+    }
+  },
+  "frequency": "1m",
+  "settings": {
+    "max_page_search_size": 500
+  }
+}

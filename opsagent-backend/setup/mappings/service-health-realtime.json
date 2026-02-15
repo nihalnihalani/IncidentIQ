@@ -1,0 +1,46 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "service.name": {
+        "type": "keyword"
+      },
+      "time_bucket": {
+        "type": "date"
+      },
+      "total_requests": {
+        "type": "long"
+      },
+      "error_count": {
+        "type": "long"
+      },
+      "error_rate": {
+        "type": "float"
+      },
+      "avg_duration_ms": {
+        "type": "float"
+      },
+      "p95_duration_ms": {
+        "type": "float"
+      },
+      "p99_duration_ms": {
+        "type": "float"
+      },
+      "status_2xx": {
+        "type": "long"
+      },
+      "status_4xx": {
+        "type": "long"
+      },
+      "status_5xx": {
+        "type": "long"
+      },
+      "unique_errors": {
+        "type": "integer"
+      }
+    }
+  }
+}
