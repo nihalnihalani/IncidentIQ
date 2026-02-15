@@ -11,9 +11,10 @@ interface MetricCardProps {
   trendValue?: string
   color?: string
   className?: string
+  live?: boolean
 }
 
-export function MetricCard({ label, value, subtitle, icon, trend, trendValue, color, className }: MetricCardProps) {
+export function MetricCard({ label, value, subtitle, icon, trend, trendValue, color, className, live }: MetricCardProps) {
   return (
     <Card className={cn('relative overflow-hidden', className)}>
       {color && (
@@ -24,8 +25,16 @@ export function MetricCard({ label, value, subtitle, icon, trend, trendValue, co
       )}
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums" style={color ? { color } : undefined}>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</p>
+            {live && (
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ backgroundColor: color || '#ff8c00' }} />
+                <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: color || '#ff8c00' }} />
+              </span>
+            )}
+          </div>
+          <p className={cn('mt-1 text-2xl font-bold tabular-nums', live && 'font-mono')} style={color ? { color } : undefined}>
             {value}
           </p>
           {subtitle && <p className="mt-0.5 text-xs text-text-dim">{subtitle}</p>}

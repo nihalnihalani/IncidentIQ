@@ -72,7 +72,7 @@ export function IncidentPage() {
             <p className="text-xs text-text-muted mb-3">
               A single ES|QL query performs hybrid search, RRF fusion, and semantic reranking -- no Python, no LangChain, just ES|QL.
             </p>
-            <PipelineViz steps={pipelineSteps} className="mb-4" />
+            <PipelineViz steps={pipelineSteps} animate delay={300} className="mb-4" />
             <EsqlBlock
               query='FROM incident-knowledge METADATA _score | FORK (WHERE MATCH(title, "orders 500 connection pool") | SORT _score DESC | LIMIT 30) (WHERE MATCH(content, "orders 500 connection pool") | SORT _score DESC | LIMIT 30) | FUSE RRF WITH {"rank_constant": 60} | RERANK "orders 500 connection pool" ON content WITH {"inference_id": ".rerank-v1-elasticsearch"} | LIMIT 5'
               className="mt-3"

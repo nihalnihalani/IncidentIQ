@@ -4,8 +4,28 @@ import { ServiceHealthGrid } from '@/components/dashboard/service-health-grid'
 import { IncidentList } from '@/components/dashboard/incident-list'
 import { AgentFeed } from '@/components/dashboard/agent-feed'
 import { AlertTriangle, Activity, DollarSign, Clock } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+function useRevenueTicker(startAmount: number, ratePerSec: number) {
+  const [amount, setAmount] = useState(startAmount)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAmount(prev => prev + ratePerSec)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [ratePerSec])
+  return amount
+}
+
+function formatRevenue(amount: number) {
+  if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}k`
+  return `$${amount}`
+}
 
 export function DashboardPage() {
+  // $12k/min = $200/sec, start at $36k (3 min into incident)
+  const revenue = useRevenueTicker(36000, 200)
+
   return (
     <div className="min-h-screen">
       <TopBar title="Live Operations Dashboard" />
@@ -48,12 +68,13 @@ export function DashboardPage() {
           />
           <MetricCard
             label="Revenue Impact"
-            value="$36k"
+            value={formatRevenue(revenue)}
             subtitle="Estimated since 03:07 AM"
             icon={<DollarSign className="h-5 w-5" />}
             color="#ff8c00"
             trend="up"
             trendValue="$12k/min burn rate"
+            live
           />
           <MetricCard
             label="Agent Actions"

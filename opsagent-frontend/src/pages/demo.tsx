@@ -17,8 +17,12 @@ import {
   MessageSquare,
   Ticket,
   CheckCircle,
+  Zap,
+  Clock,
+  Users,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 
 interface StoryBeat {
@@ -84,7 +88,7 @@ export function DemoPage() {
       hiddenGem: 'FORK/FUSE/RERANK',
       content: (
         <div className="space-y-4">
-          <PipelineViz steps={pipelineSteps} />
+          <PipelineViz steps={pipelineSteps} animate delay={500} />
           <EsqlBlock query='FROM incident-knowledge METADATA _score | FORK (WHERE MATCH(title, "orders 500 connection pool") | SORT _score DESC | LIMIT 30) (WHERE MATCH(content, "orders 500 connection pool") | SORT _score DESC | LIMIT 30) | FUSE RRF | RERANK "orders 500 connection pool" ON content | LIMIT 5' />
           <p className="text-xs text-elastic">
             Result: Found 3 similar past incidents. All involved connection pool exhaustion.
@@ -227,22 +231,88 @@ export function DemoPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-lg border border-elastic/30 bg-surface-2 p-3 text-center">
-              <p className="text-2xl font-bold text-elastic">2m 30s</p>
-              <p className="text-[10px] text-text-dim">Time to Response</p>
-              <p className="text-[9px] text-text-dim">vs. 47m manual</p>
-            </div>
-            <div className="rounded-lg border border-border bg-surface-2 p-3 text-center">
-              <p className="text-2xl font-bold text-agent-blue">$36k</p>
-              <p className="text-[10px] text-text-dim">Revenue Saved</p>
-              <p className="text-[9px] text-text-dim">vs. $564k if manual</p>
-            </div>
-            <div className="rounded-lg border border-border bg-surface-2 p-3 text-center">
-              <p className="text-2xl font-bold text-agent-purple">0</p>
-              <p className="text-[10px] text-text-dim">Context Switches</p>
-              <p className="text-[9px] text-text-dim">SRE has full context</p>
-            </div>
+          {/* Before/After Impact Comparison */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* BEFORE: Manual Response */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="rounded-lg border border-critical/20 bg-critical-bg p-4"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="h-4 w-4 text-critical" />
+                <span className="text-xs font-bold text-critical uppercase tracking-wider">Without OpsAgent</span>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-text-dim" />
+                    <span className="text-xs text-text-muted">Time to Response</span>
+                  </div>
+                  <span className="text-sm font-bold font-mono text-critical">47 min</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-3.5 w-3.5 text-text-dim" />
+                    <span className="text-xs text-text-muted">Revenue Lost</span>
+                  </div>
+                  <span className="text-sm font-bold font-mono text-critical">$564k</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 text-text-dim" />
+                    <span className="text-xs text-text-muted">Engineers Paged</span>
+                  </div>
+                  <span className="text-sm font-bold font-mono text-critical">4</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* AFTER: OpsAgent Response */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              className="rounded-lg border border-elastic/30 bg-elastic-bg p-4"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-elastic" />
+                <span className="text-xs font-bold text-elastic uppercase tracking-wider">With OpsAgent</span>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-text-dim" />
+                    <span className="text-xs text-text-muted">Time to Response</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold font-mono text-elastic">2m 30s</span>
+                    <span className="text-[10px] font-bold text-low">-95%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-3.5 w-3.5 text-text-dim" />
+                    <span className="text-xs text-text-muted">Revenue Lost</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold font-mono text-elastic">$36k</span>
+                    <span className="text-[10px] font-bold text-low">-94%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 text-text-dim" />
+                    <span className="text-xs text-text-muted">Engineers Paged</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold font-mono text-elastic">0</span>
+                    <span className="text-[10px] font-bold text-low">Full context delivered</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       ),

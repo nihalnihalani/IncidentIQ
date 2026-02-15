@@ -103,12 +103,12 @@ elasticsearch/
 +-- opsagent-frontend/          # React dashboard (Vite + Tailwind)
 |   +-- src/
 |   |   +-- pages/              # 6 page components
-|   |   |   +-- dashboard.tsx             # Service health grid + metrics
-|   |   |   +-- incident.tsx              # Investigation view + pipeline viz
+|   |   |   +-- dashboard.tsx             # Live revenue counter + service health
+|   |   |   +-- incident.tsx              # Investigation + animated pipeline viz
 |   |   |   +-- alerts.tsx                # Percolate alert rules
-|   |   |   +-- blast-radius.tsx          # SVG graph visualization
+|   |   |   +-- blast-radius.tsx          # Animated cascade propagation
 |   |   |   +-- agent-activity.tsx        # Agent phase timeline
-|   |   |   +-- demo.tsx                  # 3-minute guided demo mode
+|   |   |   +-- demo.tsx                  # 3-min guided demo + before/after card
 |   |   +-- components/         # Reusable UI components
 |   |   |   +-- ui/             # Card, Badge, StatusDot, PipelineViz, etc.
 |   |   |   +-- layout/         # Sidebar, TopBar
@@ -131,6 +131,7 @@ elasticsearch/
 - **React 19** + **TypeScript**
 - **Vite 7** (build tool)
 - **Tailwind CSS v4** (dark SRE theme)
+- **Framer Motion** (pipeline & blast radius animations)
 - **Recharts** (data visualization)
 - **Lucide React** (icons)
 
@@ -197,6 +198,15 @@ The demo follows a story-driven "3 AM outage" narrative:
 | **Demo Clarity** | 3-minute story-driven narrative, not a feature tour |
 | **Design/Usability** | Dark SRE-themed dashboard with blast radius visualization |
 | **Agent Builder Usage** | Custom agent, ES\|QL tools, workflows, MCP-ready |
+
+## Frontend Highlights
+
+The dashboard is designed for demo impact -- every animation reinforces the incident narrative:
+
+- **Animated FORK/FUSE/RERANK Pipeline** -- Steps complete sequentially (pending → running → completed) with data particles flowing between stages and result counts springing in on completion
+- **Blast Radius Cascade** -- Failure propagates in waves from the epicenter outward with shockwave rings emanating from each newly-affected node; "Replay Cascade" button for repeat demos
+- **Live Revenue Counter** -- Ticks at $200/sec ($12k/min burn rate) with a pulsing indicator, making the business impact visceral and immediate
+- **Before/After Impact Card** -- Side-by-side animated comparison: manual response (47 min, $564k lost, 4 engineers paged) vs OpsAgent (2m 30s, $36k lost, 0 context switches)
 
 ## What Makes This Different
 
