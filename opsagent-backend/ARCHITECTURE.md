@@ -89,7 +89,7 @@ Every ES|QL tool has 3 tiers documented:
 | Tier 2 (Simplified) | Simpler ES|QL without advanced features | FORK/FUSE unavailable |
 | Tier 3 (Keyword) | Basic keyword match | Maximum compatibility |
 
-The `_fallbacks` field in each tool JSON documents the alternative queries.
+Fallback queries are documented in `FALLBACKS.md` and available as separate `*_fallback.json` tool files.
 
 ## Workflow: incident-response
 

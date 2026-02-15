@@ -18,16 +18,5 @@
         "description": "Number of top error types to return (default 10)"
       }
     }
-  },
-  "_fallbacks": {
-    "note": "If the primary query fails, use these fallback versions in order.",
-    "tier_2_simplified": {
-      "description": "Without sample_message aggregation, just counts by error type.",
-      "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND log.level IN (\"ERROR\", \"FATAL\") AND @timestamp > NOW() - ?time_range | STATS error_count = COUNT(*) BY error.type | SORT error_count DESC | LIMIT ?result_count"
-    },
-    "tier_3_keyword": {
-      "description": "Just counts errors by log level, no error.type breakdown.",
-      "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | STATS count = COUNT(*) BY log.level | SORT count DESC | LIMIT 10"
-    }
   }
 }

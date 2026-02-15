@@ -62,7 +62,7 @@ export function Sidebar() {
           <div className="space-y-1.5">
             {[
               { name: 'OpsAgent', color: '#00bfb3', status: 'Investigating' },
-              { name: 'Workflow Engine', color: '#8844ff', status: 'Executing' },
+              { name: 'Workflow Engine', color: '#ffaa00', status: 'Executing' },
             ].map(a => (
               <div key={a.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">

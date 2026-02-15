@@ -361,6 +361,43 @@ def get_rps_multiplier(minutes_ago):
 # ---------------------------------------------------------------------------
 # Log generator
 # ---------------------------------------------------------------------------
+# Background error distribution: heavily skewed to a few common error types.
+# This ensures that incident-specific errors (DatabaseConnectionError, CircuitBreakerOpen,
+# ConnectionTimeout) are statistically RARE in the background, so significant_terms
+# will surface them clearly during the incident spike.
+BACKGROUND_ERRORS = {
+    "NullPointerException": 0.50,
+    "RateLimitExceeded": 0.40,
+    "OutOfMemoryError": 0.10,
+}
+
+# Incident-specific error profiles: used ONLY during active incident windows.
+# These are the errors that significant_terms should surface as anomalous.
+INCIDENT_ERRORS = {
+    "payment-service": {
+        "DatabaseConnectionError": 0.40,
+        "ConnectionTimeout": 0.30,
+        "CircuitBreakerOpen": 0.25,
+        "GRPCDeadlineExceeded": 0.05,
+    },
+    "order-service": {
+        "GRPCDeadlineExceeded": 0.50,
+        "ConnectionTimeout": 0.30,
+        "KafkaProducerError": 0.20,
+    },
+    "auth-service": {
+        "CertificateExpired": 0.40,
+        "SSLHandshakeError": 0.35,
+        "AuthenticationFailure": 0.25,
+    },
+    "notification-service": {
+        "RedisConnectionRefused": 0.45,
+        "ConnectionTimeout": 0.30,
+        "KafkaProducerError": 0.25,
+    },
+}
+
+
 def generate_log_entry(service, ts, is_incident=False):
     """Generate a single log entry for a service at a timestamp."""
     profile = SERVICE_PROFILES[service]
@@ -394,7 +431,13 @@ def generate_log_entry(service, ts, is_incident=False):
     doc["log.level"] = log_level
 
     if log_level in ("ERROR", "FATAL"):
-        error_type = pick_weighted(profile["primary_errors"])
+        # KEY: During incidents, use incident-specific error types.
+        # During normal operation, use the heavily-skewed background distribution.
+        # This makes incident errors statistically unusual (what significant_terms detects).
+        if is_incident and service in INCIDENT_ERRORS:
+            error_type = pick_weighted(INCIDENT_ERRORS[service])
+        else:
+            error_type = pick_weighted(BACKGROUND_ERRORS)
         doc["error.type"] = error_type
         doc["error.message"] = random.choice(ERROR_MESSAGES[error_type])
         doc["message"] = f"[{log_level}] {doc['error.message']}"

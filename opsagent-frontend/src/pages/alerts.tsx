@@ -119,8 +119,8 @@ export function AlertsPage() {
                       {/* Workflow action */}
                       {rule.workflowAction && (
                         <div className="mt-2 flex items-center gap-1.5">
-                          <Zap className="h-3 w-3 text-agent-purple" />
-                          <span className="text-[10px] font-mono text-agent-purple">Action: {rule.workflowAction}</span>
+                          <Zap className="h-3 w-3 text-agent-amber" />
+                          <span className="text-[10px] font-mono text-agent-amber">Action: {rule.workflowAction}</span>
                         </div>
                       )}
 

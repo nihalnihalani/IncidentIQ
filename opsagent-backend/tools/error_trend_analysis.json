@@ -18,16 +18,5 @@
         "description": "Time bucket granularity, e.g. '5 minutes', '15 minutes', '1 hour'"
       }
     }
-  },
-  "_fallbacks": {
-    "note": "If the primary query fails, use these fallback versions in order.",
-    "tier_2_simplified": {
-      "description": "Simplified without EVAL CASE, just counts ERROR/FATAL logs per bucket.",
-      "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range AND log.level IN (\"ERROR\", \"FATAL\") | EVAL time_bucket = DATE_TRUNC(?bucket_size, @timestamp) | STATS error_count = COUNT(*) BY time_bucket | SORT time_bucket ASC | LIMIT 100"
-    },
-    "tier_3_keyword": {
-      "description": "Basic count of errors over the full time range, no time bucketing.",
-      "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | STATS total = COUNT(*), errors = COUNT_DISTINCT(CASE(log.level == \"ERROR\" OR log.level == \"FATAL\", @timestamp, NULL)) BY log.level | SORT errors DESC | LIMIT 20"
-    }
   }
 }
