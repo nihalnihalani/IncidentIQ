@@ -29,17 +29,20 @@ import {
   ReferenceLine,
 } from 'recharts'
 import { AlertTriangle, Clock, Layers, TrendingUp, BarChart3, GitBranch, ArrowDownRight, Bot } from 'lucide-react'
+import { DotPattern } from '@/components/ui/dot-pattern'
 
 export function IncidentPage() {
   const incident = incidents[0]
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <DotPattern className="[mask-image:radial-gradient(ellipse_at_top,white_25%,transparent_70%)] opacity-40" />
+
       <TopBar title="Incident Investigation" />
 
-      <div className="p-6 space-y-6">
+      <div className="relative p-6 space-y-6">
         {/* Incident Header */}
-        <Card glow>
+        <Card glow beam beamColor="#ff4444" beamColorTo="#ff8c00">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-3 mb-2">

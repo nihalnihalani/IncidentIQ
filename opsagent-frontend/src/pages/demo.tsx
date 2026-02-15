@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PipelineViz } from '@/components/ui/pipeline-viz'
 import { EsqlBlock } from '@/components/ui/esql-block'
+import { ShimmerButton } from '@/components/ui/shimmer-button'
+import { DotPattern } from '@/components/ui/dot-pattern'
 import { pipelineSteps } from '@/data/mock'
 import {
   Play,
@@ -339,23 +341,25 @@ export function DemoPage() {
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <DotPattern className="[mask-image:radial-gradient(ellipse_at_top,white_30%,transparent_70%)] opacity-40" />
+
       <TopBar title="Demo Mode -- The 3 AM Incident" />
 
-      <div className="p-6 space-y-6">
+      <div className="relative p-6 space-y-6">
         {/* Timer + Controls */}
-        <Card glow>
+        <Card glow beam beamColor="#00bfb3" beamColorTo="#8844ff">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <button
+              <ShimmerButton
                 onClick={() => {
                   if (!isPlaying && elapsed >= 180) { setElapsed(0); setActiveStep(0) }
                   setIsPlaying(!isPlaying)
                 }}
-                className="flex h-10 w-10 items-center justify-center rounded-lg bg-elastic/15 text-elastic hover:bg-elastic/25 transition-colors"
+                className="h-10 w-10 !px-0 !py-0 rounded-lg"
               >
                 {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-              </button>
+              </ShimmerButton>
               <div>
                 <p className="text-lg font-bold font-mono text-text tabular-nums">{formatTime(elapsed)} / 3:00</p>
                 <p className="text-[10px] text-text-dim">{isPlaying ? 'Telling the story...' : 'Click play to begin the incident narrative'}</p>

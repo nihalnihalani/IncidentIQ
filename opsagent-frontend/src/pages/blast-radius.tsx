@@ -1,6 +1,7 @@
 import { TopBar } from '@/components/layout/top-bar'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { DotPattern } from '@/components/ui/dot-pattern'
 import { blastRadiusNodes, blastRadiusEdges } from '@/data/mock'
 import { Share2, RotateCcw } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
@@ -71,7 +72,9 @@ export function BlastRadiusPage() {
   }).length
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <DotPattern className="[mask-image:radial-gradient(ellipse_at_center,white_15%,transparent_70%)] opacity-40" />
+
       <TopBar title="Blast Radius Visualization" />
 
       <div className="p-6 space-y-6">

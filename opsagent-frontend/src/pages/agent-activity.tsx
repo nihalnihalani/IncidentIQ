@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusDot } from '@/components/ui/status-dot'
 import { EsqlBlock } from '@/components/ui/esql-block'
+import { DotPattern } from '@/components/ui/dot-pattern'
 import { agentActivities, phaseColors, phaseLabels, agentColors, agentLabels } from '@/data/mock'
 import type { AgentPhase, AgentName } from '@/data/mock'
 import { Bot, ArrowRight, ArrowDownRight } from 'lucide-react'
@@ -19,10 +20,12 @@ export function AgentActivityPage() {
     : agentActivities.filter(a => a.agent === filter)
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <DotPattern className="[mask-image:radial-gradient(ellipse_at_center,white_15%,transparent_70%)] opacity-40" />
+
       <TopBar title="Activity Log" />
 
-      <div className="p-6 space-y-6">
+      <div className="relative p-6 space-y-6">
         {/* Multi-Agent Architecture */}
         <Card glow>
           <div className="flex items-start gap-4">

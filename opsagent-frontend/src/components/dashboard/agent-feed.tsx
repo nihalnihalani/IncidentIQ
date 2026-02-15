@@ -26,7 +26,7 @@ export function AgentFeed() {
         </button>
       </CardHeader>
 
-      <div className="space-y-2">
+      <div className="space-y-2 stagger-children">
         {recent.map((a, idx) => {
           const prevAgent = idx > 0 ? recent[idx - 1].agent : null
           const isHandoff = prevAgent !== null && prevAgent !== a.agent

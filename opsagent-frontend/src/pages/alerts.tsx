@@ -5,16 +5,19 @@ import { EsqlBlock } from '@/components/ui/esql-block'
 import { alertRules, severityColors } from '@/data/mock'
 import type { Severity } from '@/data/mock'
 import { Bell, ArrowRightLeft, Zap, Clock, Hash, ChevronDown, ChevronUp, MessageSquare, Ticket } from 'lucide-react'
+import { DotPattern } from '@/components/ui/dot-pattern'
 import { useState } from 'react'
 
 export function AlertsPage() {
   const [expandedRule, setExpandedRule] = useState<string | null>('1')
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      <DotPattern className="[mask-image:radial-gradient(ellipse_at_center,white_15%,transparent_70%)] opacity-40" />
+
       <TopBar title="Alert Rules (Percolate)" />
 
-      <div className="p-6 space-y-6">
+      <div className="relative p-6 space-y-6">
         {/* Percolate Explainer */}
         <Card glow>
           <div className="flex items-start gap-4">

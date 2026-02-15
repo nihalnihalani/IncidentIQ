@@ -15,11 +15,18 @@ interface MetricCardProps {
 }
 
 export function MetricCard({ label, value, subtitle, icon, trend, trendValue, color, className, live }: MetricCardProps) {
+  const isCritical = color === '#ff4444'
+
   return (
-    <Card className={cn('relative overflow-hidden', className)}>
+    <Card
+      className={cn('relative', isCritical && 'glow-critical', className)}
+      beam={live}
+      beamColor={color || '#00bfb3'}
+      beamColorTo={color || '#4488ff'}
+    >
       {color && (
         <div
-          className="absolute inset-0 opacity-5"
+          className="absolute inset-0 opacity-[0.07]"
           style={{ background: `radial-gradient(ellipse at top right, ${color}, transparent 70%)` }}
         />
       )}
