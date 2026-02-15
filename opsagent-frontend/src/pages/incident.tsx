@@ -7,14 +7,13 @@ import { EsqlBlock } from '@/components/ui/esql-block'
 import {
   incidents,
   pipelineSteps,
-  significantTermsData,
-  errorTrendData,
   agentActivities,
   phaseColors,
   phaseLabels,
   agentColors,
   agentLabels,
 } from '@/data/mock'
+import { useErrorTrends, useSignificantTerms } from '@/hooks/use-error-trends'
 import {
   AreaChart,
   Area,
@@ -33,6 +32,8 @@ import { DotPattern } from '@/components/ui/dot-pattern'
 
 export function IncidentPage() {
   const incident = incidents[0]
+  const { data: errorTrendData } = useErrorTrends(incident.service)
+  const { data: significantTermsData } = useSignificantTerms(incident.service)
 
   return (
     <div className="relative min-h-screen">

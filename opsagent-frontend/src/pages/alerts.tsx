@@ -2,7 +2,9 @@ import { TopBar } from '@/components/layout/top-bar'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { EsqlBlock } from '@/components/ui/esql-block'
-import { alertRules, severityColors } from '@/data/mock'
+import { severityColors } from '@/data/mock'
+import { useAlertRules } from '@/hooks/use-alerts'
+import { DataState } from '@/components/ui/data-state'
 import type { Severity } from '@/data/mock'
 import { Bell, ArrowRightLeft, Zap, Clock, Hash, ChevronDown, ChevronUp, MessageSquare, Ticket } from 'lucide-react'
 import { DotPattern } from '@/components/ui/dot-pattern'
@@ -10,6 +12,7 @@ import { useState } from 'react'
 
 export function AlertsPage() {
   const [expandedRule, setExpandedRule] = useState<string | null>('1')
+  const { data: alertRules, loading, error } = useAlertRules()
 
   return (
     <div className="relative min-h-screen">
@@ -77,6 +80,7 @@ export function AlertsPage() {
         </Card>
 
         {/* Alert Rules */}
+        <DataState loading={loading} error={error} isEmpty={alertRules.length === 0}>
         <div className="space-y-3">
           {alertRules.map(rule => {
             const expanded = expandedRule === rule.id
@@ -158,6 +162,7 @@ export function AlertsPage() {
             )
           })}
         </div>
+        </DataState>
       </div>
     </div>
   )

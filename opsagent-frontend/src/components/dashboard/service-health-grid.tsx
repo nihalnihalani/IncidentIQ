@@ -1,7 +1,8 @@
 import { Card } from '@/components/ui/card'
 import { StatusDot } from '@/components/ui/status-dot'
 import { Sparkline } from '@/components/ui/sparkline'
-import { services } from '@/data/mock'
+import { useServices } from '@/hooks/use-services'
+import { DataState } from '@/components/ui/data-state'
 import { cn } from '@/lib/utils'
 
 const statusColor: Record<string, string> = {
@@ -11,8 +12,11 @@ const statusColor: Record<string, string> = {
 }
 
 export function ServiceHealthGrid() {
+  const { data: services, loading, error } = useServices()
+
   return (
     <div className="grid grid-cols-4 gap-3">
+      <DataState loading={loading} error={error} isEmpty={services.length === 0}>
       {services.map(s => (
         <Card
           key={s.name}
@@ -64,6 +68,7 @@ export function ServiceHealthGrid() {
           </div>
         </Card>
       ))}
+      </DataState>
     </div>
   )
 }

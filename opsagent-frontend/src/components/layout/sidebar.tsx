@@ -11,6 +11,7 @@ import {
   Bot,
 } from 'lucide-react'
 import { GlowingStarsBackground } from '@/components/ui/glowing-stars-background'
+import { isLiveMode } from '@/lib/es-client'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -107,6 +108,15 @@ export function Sidebar() {
         <div className="mt-2 relative overflow-hidden rounded-lg border border-critical/20 bg-critical-bg p-2">
           <p className="text-[10px] font-mono text-critical">03:07 AM -- Active Incident</p>
           <p className="text-[10px] text-text-dim mt-0.5">order-service down</p>
+        </div>
+      </div>
+
+      <div className="mt-auto p-3 border-t border-border">
+        <div className="flex items-center gap-2">
+          <span className={`h-2 w-2 rounded-full ${isLiveMode() ? 'bg-low animate-pulse' : 'bg-text-dim'}`} />
+          <span className="text-[10px] text-text-dim font-mono">
+            {isLiveMode() ? 'Live: Elasticsearch' : 'Mock Data Mode'}
+          </span>
         </div>
       </div>
     </aside>

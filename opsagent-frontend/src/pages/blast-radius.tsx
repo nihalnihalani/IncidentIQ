@@ -2,7 +2,7 @@ import { TopBar } from '@/components/layout/top-bar'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DotPattern } from '@/components/ui/dot-pattern'
-import { blastRadiusNodes, blastRadiusEdges } from '@/data/mock'
+import { useBlastRadius } from '@/hooks/use-blast-radius'
 import { Share2, RotateCcw } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
@@ -30,6 +30,7 @@ const cascadeWaves: string[][] = [
 ]
 
 export function BlastRadiusPage() {
+  const { data: { nodes: blastRadiusNodes, edges: blastRadiusEdges } } = useBlastRadius()
   const [revealedWave, setRevealedWave] = useState(-1)
   const [isAnimating, setIsAnimating] = useState(true)
 
