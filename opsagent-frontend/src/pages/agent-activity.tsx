@@ -37,7 +37,7 @@ export function AgentActivityPage() {
                 <strong className="text-elastic">OpsAgent</strong> handles interactive triage and investigation
                 (FORK/FUSE/RERANK, significant_terms, Graph Explore, pipeline aggregations).
                 <strong className="text-agent-amber"> Workflow Engine</strong> handles alerts and actions
-                (percolate matching, Slack/Jira notifications, auto-remediation).
+                (percolate matching, Slack/Jira notifications, audit logging).
               </p>
             </div>
           </div>
