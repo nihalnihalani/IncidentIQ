@@ -77,32 +77,32 @@ export interface PipelineStep {
   resultCount?: number
 }
 
-// --- Story: "It's 3 AM. The orders-service is failing." ---
+// --- Story: "It's 3 AM. The order-service is failing." ---
 
 export const incidents: Incident[] = [
   {
     id: 'INC-4091',
-    title: 'Orders Service Down -- 500s spike, checkout completely broken',
+    title: 'Order Service Down -- 500s spike, checkout completely broken',
     severity: 'critical',
     status: 'investigating',
-    service: 'orders-service',
+    service: 'order-service',
     startedAt: '2026-02-15T03:07:00Z',
     phase: 'investigation',
     affectedServices: 5,
     errorRate: 34.7,
-    description: 'Orders-service returning 500s on all POST /orders endpoints. Customers cannot complete checkout. Revenue impact estimated at $12k/minute.'
+    description: 'order-service returning 500s on all POST /orders endpoints. Customers cannot complete checkout. Revenue impact estimated at $12k/minute.'
   },
   {
     id: 'INC-4090',
-    title: 'Payment Gateway Timeouts -- upstream from orders failure',
+    title: 'Payment Service Timeouts -- upstream from orders failure',
     severity: 'high',
     status: 'mitigating',
-    service: 'payment-gateway',
+    service: 'payment-service',
     startedAt: '2026-02-15T03:08:00Z',
     phase: 'action',
     affectedServices: 3,
     errorRate: 18.2,
-    description: 'Payment gateway timing out waiting for orders-service responses. Connection pool at 97% utilization.'
+    description: 'payment-service timing out waiting for order-service responses. Connection pool at 97% utilization.'
   },
   {
     id: 'INC-4089',
@@ -114,14 +114,14 @@ export const incidents: Incident[] = [
     phase: 'triage',
     affectedServices: 1,
     errorRate: 4.1,
-    description: 'Cart service serving stale inventory counts due to orders-service being unavailable.'
+    description: 'Cart service serving stale inventory counts due to order-service being unavailable.'
   },
 ]
 
 export const services: ServiceHealth[] = [
   { name: 'api-gateway', status: 'degraded', latency: 1200, errorRate: 8.3, requests: 15420, trend: [12, 14, 13, 15, 22, 34, 45] },
-  { name: 'orders-service', status: 'down', latency: 9800, errorRate: 34.7, requests: 890, trend: [5, 6, 8, 18, 42, 68, 89] },
-  { name: 'payment-gateway', status: 'degraded', latency: 4500, errorRate: 18.2, requests: 1200, trend: [3, 3, 4, 8, 15, 28, 35] },
+  { name: 'order-service', status: 'down', latency: 9800, errorRate: 34.7, requests: 890, trend: [5, 6, 8, 18, 42, 68, 89] },
+  { name: 'payment-service', status: 'degraded', latency: 4500, errorRate: 18.2, requests: 1200, trend: [3, 3, 4, 8, 15, 28, 35] },
   { name: 'cart-service', status: 'degraded', latency: 780, errorRate: 4.1, requests: 3400, trend: [4, 5, 4, 5, 7, 9, 12] },
   { name: 'user-service', status: 'healthy', latency: 45, errorRate: 0.2, requests: 6700, trend: [4, 5, 4, 5, 4, 5, 4] },
   { name: 'inventory-service', status: 'healthy', latency: 120, errorRate: 0.8, requests: 4100, trend: [3, 3, 3, 4, 3, 4, 3] },
@@ -135,7 +135,7 @@ export const agentActivities: AgentActivity[] = [
     phase: 'triage',
     agent: 'triage-agent',
     action: 'FORK -> FUSE -> RERANK pipeline',
-    target: 'orders-service incident knowledge',
+    target: 'order-service incident knowledge',
     timestamp: '2026-02-15T03:07:30Z',
     status: 'completed',
     detail: 'Hybrid search across incident-knowledge: lexical + semantic results fused via RRF, reranked with .rerank-v1-elasticsearch. Found 3 similar past incidents involving connection pool exhaustion.',
@@ -147,7 +147,7 @@ export const agentActivities: AgentActivity[] = [
     phase: 'investigation',
     agent: 'investigation-agent',
     action: 'significant_terms -- root cause discovery',
-    target: 'orders-service error logs',
+    target: 'order-service error logs',
     timestamp: '2026-02-15T03:08:00Z',
     status: 'completed',
     detail: 'Found statistically unusual term: "connection_pool_exhausted" (bg_count: 8, doc_count: 1,247, score: 97.1). This is NOT the most common error -- it is the most SURPRISING one. Root cause: PostgreSQL connection pool maxed at 20 connections.',
@@ -158,10 +158,10 @@ export const agentActivities: AgentActivity[] = [
     phase: 'investigation',
     agent: 'investigation-agent',
     action: 'Blast radius mapping -- downstream impact',
-    target: 'orders-service dependencies',
+    target: 'order-service dependencies',
     timestamp: '2026-02-15T03:08:30Z',
     status: 'completed',
-    detail: 'Checked downstream services for cascading failures. Found 5 affected services: payment-gateway (degraded), cart-service (stale data), notification-service (queue backup), inventory-service (timeout errors). Critical path: payment-service -> orders-service -> checkout.',
+    detail: 'Checked downstream services for cascading failures. Found 5 affected services: payment-service (degraded), cart-service (stale data), notification-service (queue backup), inventory-service (timeout errors). Critical path: payment-service -> order-service -> checkout.',
     toolUsed: 'service_error_breakdown'
   },
   {
@@ -169,12 +169,12 @@ export const agentActivities: AgentActivity[] = [
     phase: 'investigation',
     agent: 'investigation-agent',
     action: 'Error trend prediction -- pipeline aggregations',
-    target: 'orders-service error rate',
+    target: 'order-service error rate',
     timestamp: '2026-02-15T03:09:00Z',
     status: 'completed',
     detail: 'Pipeline aggregations (derivative + cumulative_sum) show error rate accelerating at +22%/min. Prediction: complete service failure in 12 minutes. SLA breach imminent.',
     toolUsed: 'error_trend_analysis',
-    esqlQuery: 'FROM logs-* | WHERE @timestamp > NOW() - 30 MINUTES AND service.name == "orders-service" AND log.level == "ERROR" | EVAL bucket = DATE_TRUNC(5 MINUTES, @timestamp) | STATS error_count = COUNT(*) BY bucket | SORT bucket ASC'
+    esqlQuery: 'FROM logs-* | WHERE @timestamp > NOW() - 30 MINUTES AND service.name == "order-service" AND log.level == "ERROR" | EVAL bucket = DATE_TRUNC(5 MINUTES, @timestamp) | STATS error_count = COUNT(*) BY bucket | SORT bucket ASC'
   },
   {
     id: '5',
@@ -195,7 +195,7 @@ export const agentActivities: AgentActivity[] = [
     target: 'SRE on-call team',
     timestamp: '2026-02-15T03:09:15Z',
     status: 'completed',
-    detail: 'Sent Slack alert to #incidents-critical: "CRITICAL: orders-service down, 34.7% error rate, 5 services affected. Root cause: connection_pool_exhausted (significant_terms score: 97.1)."',
+    detail: 'Sent Slack alert to #incidents-critical: "CRITICAL: order-service down, 34.7% error rate, 5 services affected. Root cause: connection_pool_exhausted (significant_terms score: 97.1)."',
     toolUsed: 'slack_notify'
   },
   {
@@ -206,7 +206,7 @@ export const agentActivities: AgentActivity[] = [
     target: 'SRE Board',
     timestamp: '2026-02-15T03:09:30Z',
     status: 'completed',
-    detail: 'Created Jira ticket OPS-2847: "orders-service connection pool exhaustion" with full blast radius, significant_terms analysis, and recommended remediation steps attached.',
+    detail: 'Created Jira ticket OPS-2847: "order-service connection pool exhaustion" with full blast radius, significant_terms analysis, and recommended remediation steps attached.',
     toolUsed: 'jira_create'
   },
   {
@@ -226,14 +226,14 @@ export const alertRules: AlertRule[] = [
   {
     id: '1',
     name: 'Orders Critical 500s',
-    description: 'Triggers when orders-service returns high volume of 500 errors',
-    condition: 'service.name:"orders-service" AND http.response.status_code:500',
+    description: 'Triggers when order-service returns high volume of 500 errors',
+    condition: 'service.name:"order-service" AND http.response.status_code:500',
     severity: 'critical',
     active: true,
     matchCount: 47,
     lastTriggered: '2026-02-15T03:07:00Z',
     createdBy: 'SRE Team',
-    percolateQuery: '{"bool":{"must":[{"match":{"service.name":"orders-service"}},{"match":{"http.response.status_code":"500"}}]}}',
+    percolateQuery: '{"bool":{"must":[{"match":{"service.name":"order-service"}},{"match":{"http.response.status_code":"500"}}]}}',
     workflowAction: 'Slack #incidents-critical + Page on-call'
   },
   {
@@ -266,13 +266,13 @@ export const alertRules: AlertRule[] = [
     id: '4',
     name: 'Database Connection Errors',
     description: 'Detects database connection-related error patterns in logs',
-    condition: 'error.type:"connection_pool_exhausted" AND service.name:"orders-service"',
+    condition: 'error.type:"connection_pool_exhausted" AND service.name:"order-service"',
     severity: 'high',
     active: true,
     matchCount: 89,
     lastTriggered: '2026-02-15T03:08:00Z',
     createdBy: 'DBA Team',
-    percolateQuery: '{"bool":{"must":[{"match":{"error.type":"connection_pool_exhausted"}},{"match":{"service.name":"orders-service"}}]}}',
+    percolateQuery: '{"bool":{"must":[{"match":{"error.type":"connection_pool_exhausted"}},{"match":{"service.name":"order-service"}}]}}',
     workflowAction: 'Slack #dba + investigation ticket'
   },
   {
@@ -292,8 +292,8 @@ export const alertRules: AlertRule[] = [
 
 export const blastRadiusNodes: BlastRadiusNode[] = [
   { id: 'api-gw', name: 'API Gateway', type: 'gateway', status: 'degraded', x: 400, y: 50 },
-  { id: 'orders', name: 'Orders Service', type: 'service', status: 'down', x: 250, y: 180 },
-  { id: 'payment', name: 'Payment Gateway', type: 'service', status: 'degraded', x: 550, y: 180 },
+  { id: 'orders', name: 'Order Service', type: 'service', status: 'down', x: 250, y: 180 },
+  { id: 'payment', name: 'Payment Service', type: 'service', status: 'degraded', x: 550, y: 180 },
   { id: 'cart', name: 'Cart Service', type: 'service', status: 'degraded', x: 150, y: 310 },
   { id: 'user', name: 'User Service', type: 'service', status: 'healthy', x: 650, y: 310 },
   { id: 'inventory', name: 'Inventory', type: 'service', status: 'healthy', x: 350, y: 310 },

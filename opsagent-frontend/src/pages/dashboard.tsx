@@ -44,7 +44,7 @@ export function DashboardPage() {
               <AlertTriangle className="h-5 w-5 text-critical animate-pulse-glow" />
             </div>
             <div>
-              <p className="text-sm font-bold text-critical">It's 3:07 AM. The orders-service is failing.</p>
+              <p className="text-sm font-bold text-critical">It's 3:07 AM. The order-service is failing.</p>
               <p className="text-xs text-text-muted mt-0.5">
                 Customers can't checkout. Revenue bleeding at $12k/min. Watch the multi-agent system detect, investigate, and respond.
               </p>
@@ -61,7 +61,7 @@ export function DashboardPage() {
             icon={<AlertTriangle className="h-5 w-5" />}
             color="#ff4444"
             trend="up"
-            trendValue="Cascading from orders-service"
+            trendValue="Cascading from order-service"
           />
           <MetricCard
             label="MTTR (Current)"

@@ -32,7 +32,7 @@ export function AlertsPage() {
               <p className="text-xs text-text-muted leading-relaxed">
                 Traditional search: find <strong>documents</strong> matching a query.
                 Percolate: find <strong>queries</strong> matching a document.
-                When orders-service went down at 3 AM, the incident document was percolated against all stored rules -- <strong className="text-agent-amber">3 rules matched instantly</strong>, triggering Slack, Jira, and audit logging.
+                When order-service went down at 3 AM, the incident document was percolated against all stored rules -- <strong className="text-agent-amber">3 rules matched instantly</strong>, triggering Slack, Jira, and audit logging.
               </p>
               <div className="mt-3 flex items-center gap-6 text-xs">
                 <div className="flex items-center gap-1.5 text-text-dim">

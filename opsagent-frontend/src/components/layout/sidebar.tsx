@@ -106,7 +106,7 @@ export function Sidebar() {
         {/* Story context */}
         <div className="mt-2 relative overflow-hidden rounded-lg border border-critical/20 bg-critical-bg p-2">
           <p className="text-[10px] font-mono text-critical">03:07 AM -- Active Incident</p>
-          <p className="text-[10px] text-text-dim mt-0.5">orders-service down</p>
+          <p className="text-[10px] text-text-dim mt-0.5">order-service down</p>
         </div>
       </div>
     </aside>

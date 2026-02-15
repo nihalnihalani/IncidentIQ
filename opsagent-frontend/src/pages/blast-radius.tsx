@@ -281,7 +281,7 @@ export function BlastRadiusPage() {
         <div className="grid grid-cols-3 gap-4">
           <Card>
             <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Discovered Root Cause</p>
-            <p className="text-sm font-bold text-critical font-mono">payment-service &rarr; orders-service</p>
+            <p className="text-sm font-bold text-critical font-mono">payment-service &rarr; order-service</p>
             <p className="text-xs text-text-dim mt-1">Payment DB connection pool exhausted, cascading to orders</p>
           </Card>
           <Card>

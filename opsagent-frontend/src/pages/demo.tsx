@@ -48,8 +48,8 @@ export function DemoPage() {
     {
       id: 0,
       time: '3:07 AM',
-      title: 'Alert Fires on Orders-Service',
-      narrator: 'It\'s 3:07 AM. The orders-service just started returning 500s. Customers can\'t checkout. Revenue is bleeding at $12,000 per minute. The multi-agent workflow triggers -- Triage Agent wakes up first.',
+      title: 'Alert Fires on Order-Service',
+      narrator: 'It\'s 3:07 AM. The order-service just started returning 500s. Customers can\'t checkout. Revenue is bleeding at $12,000 per minute. The multi-agent workflow triggers -- Triage Agent wakes up first.',
       icon: <AlertTriangle className="h-5 w-5" />,
       route: '/',
       content: (
@@ -57,7 +57,7 @@ export function DemoPage() {
           <div className="rounded-lg border border-critical/30 bg-critical-bg p-4">
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="h-4 w-4 text-critical animate-pulse-glow" />
-              <span className="text-sm font-bold text-critical">orders-service: DOWN</span>
+              <span className="text-sm font-bold text-critical">order-service: DOWN</span>
             </div>
             <div className="grid grid-cols-3 gap-3 mt-3">
               <div className="text-center">
@@ -130,15 +130,15 @@ export function DemoPage() {
       id: 3,
       time: '3:08:30 AM',
       title: 'Investigation Agent: Blast Radius',
-      narrator: 'The Investigation Agent maps the cascading failure across 5 services. The critical path: api-gateway -> orders-service -> payment-gateway. PostgreSQL connection pool is the epicenter.',
+      narrator: 'The Investigation Agent maps the cascading failure across 5 services. The critical path: api-gateway -> order-service -> payment-service. PostgreSQL connection pool is the epicenter.',
       icon: <Share2 className="h-5 w-5" />,
       route: '/blast-radius',
       content: (
         <div className="space-y-4">
           <div className="grid grid-cols-5 gap-2">
             {[
-              { name: 'orders-service', status: 'DOWN', color: '#ff4444' },
-              { name: 'payment-gateway', status: 'DEGRADED', color: '#ff8c00' },
+              { name: 'order-service', status: 'DOWN', color: '#ff4444' },
+              { name: 'payment-service', status: 'DEGRADED', color: '#ff8c00' },
               { name: 'cart-service', status: 'DEGRADED', color: '#ff8c00' },
               { name: 'api-gateway', status: 'DEGRADED', color: '#ffd000' },
               { name: 'PostgreSQL', status: 'SATURATED', color: '#ff4444' },
@@ -150,7 +150,7 @@ export function DemoPage() {
             ))}
           </div>
           <p className="text-xs text-text-muted">
-            <strong className="text-critical">5 services affected</strong>. Root cause: PostgreSQL connection pool maxed at 20 connections. Cascading through orders-service to payment-gateway and cart-service.
+            <strong className="text-critical">5 services affected</strong>. Root cause: PostgreSQL connection pool maxed at 20 connections. Cascading through order-service to payment-service and cart-service.
           </p>
         </div>
       ),
