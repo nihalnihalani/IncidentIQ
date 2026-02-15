@@ -107,20 +107,51 @@ create_indices() {
 }
 
 # ---------------------------------------------------------------------------
-# 2. Register Tools (3 ES|QL + 1 Index Search)
+# 2. Register Tools
+# MVP mode: only MUST HAVE tools (skip OPTIONAL and fallback files)
+# Full mode: registers all tools including OPTIONAL ones
 # ---------------------------------------------------------------------------
+# MUST HAVE tools (always registered)
+MVP_TOOLS=(
+  "hybrid_rag_search"
+  "error_trend_analysis"
+  "service_error_breakdown"
+  "anomaly_detector"
+)
+# OPTIONAL tools (skipped in MVP mode - CATEGORIZE and LOOKUP JOIN are risky)
+OPTIONAL_TOOLS=(
+  "discover_log_patterns"
+  "service_owner_lookup"
+)
+
 register_tools() {
   log_info "Registering Agent Builder tools..."
 
-  for tool_file in "${TOOLS_DIR}"/*.json; do
-    local tool_name
-    tool_name="$(basename "${tool_file}" .json)"
-    log_info "  Registering tool: ${tool_name}..."
-    kbn_call POST "/api/agent_builder/tools" -d @"${tool_file}"
-    echo
+  # Always register MUST HAVE tools
+  for tool_name in "${MVP_TOOLS[@]}"; do
+    local tool_file="${TOOLS_DIR}/${tool_name}.json"
+    if [[ -f "${tool_file}" ]]; then
+      log_info "  [MUST HAVE] Registering tool: ${tool_name}..."
+      kbn_call POST "/api/agent_builder/tools" -d @"${tool_file}"
+      echo
+    fi
   done
 
-  log_info "All tools registered (4 tools)."
+  # Register OPTIONAL tools only in full mode
+  if [[ "${MVP_MODE}" == "false" ]]; then
+    for tool_name in "${OPTIONAL_TOOLS[@]}"; do
+      local tool_file="${TOOLS_DIR}/${tool_name}.json"
+      if [[ -f "${tool_file}" ]]; then
+        log_info "  [OPTIONAL] Registering tool: ${tool_name}..."
+        kbn_call POST "/api/agent_builder/tools" -d @"${tool_file}"
+        echo
+      fi
+    done
+    log_info "All tools registered (${#MVP_TOOLS[@]} must-have + ${#OPTIONAL_TOOLS[@]} optional)."
+  else
+    log_warn "MVP mode: skipped OPTIONAL tools (discover_log_patterns, service_owner_lookup)"
+    log_info "Registered ${#MVP_TOOLS[@]} must-have tools."
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -200,6 +231,7 @@ main() {
   echo "=============================================="
   echo "  ES URL:     ${ES_URL}"
   echo "  Kibana URL: ${KIBANA_URL}"
+  echo "  Mode:       $( [[ "${MVP_MODE}" == "true" ]] && echo "MVP (must-have only)" || echo "FULL (all features)" )"
   echo "=============================================="
   echo
 
