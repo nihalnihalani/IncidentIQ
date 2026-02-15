@@ -8,6 +8,7 @@ import {
   Activity,
   Play,
   Shield,
+  Bot,
 } from 'lucide-react'
 
 const navItems = [
@@ -55,31 +56,38 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* OpsAgent Status Footer -- 1 agent, 4 phases */}
+      {/* Multi-Agent Status Footer */}
       <div className="border-t border-border p-3">
         <div className="rounded-lg border border-border bg-surface-2 p-2.5">
-          <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-2">OpsAgent Phases</p>
+          <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-2">Multi-Agent System</p>
           <div className="space-y-1.5">
             {[
-              { name: 'Triage', color: '#00bfb3', status: 'Complete' },
-              { name: 'Investigation', color: '#4488ff', status: 'Active' },
-              { name: 'Alert', color: '#ffaa00', status: 'Matched' },
-              { name: 'Action', color: '#8844ff', status: 'Executing' },
+              { name: 'Triage Agent', color: '#00bfb3', status: 'Complete', icon: '1' },
+              { name: 'Investigation Agent', color: '#4488ff', status: 'Active', icon: '2' },
+              { name: 'PostMortem Agent', color: '#8844ff', status: 'Queued', icon: '3' },
             ].map(a => (
               <div key={a.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span
-                      className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
-                      style={{ backgroundColor: a.color }}
-                    />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full" style={{ backgroundColor: a.color }} />
-                  </span>
+                  <div
+                    className="flex h-4 w-4 items-center justify-center rounded text-[8px] font-bold"
+                    style={{ backgroundColor: `${a.color}20`, color: a.color }}
+                  >
+                    <Bot className="h-2.5 w-2.5" />
+                  </div>
                   <span className="text-[11px] text-text-muted">{a.name}</span>
                 </div>
                 <span className="text-[10px] font-mono" style={{ color: a.color }}>{a.status}</span>
               </div>
             ))}
+          </div>
+          {/* Workflow orchestration line */}
+          <div className="mt-2 flex items-center justify-center gap-1">
+            <span className="text-[8px] font-mono text-text-dim">workflow:</span>
+            <span className="text-[8px] font-mono text-elastic">triage</span>
+            <span className="text-[8px] text-text-dim">{"\u2192"}</span>
+            <span className="text-[8px] font-mono text-agent-blue">investigate</span>
+            <span className="text-[8px] text-text-dim">{"\u2192"}</span>
+            <span className="text-[8px] font-mono text-agent-purple">postmortem</span>
           </div>
         </div>
 

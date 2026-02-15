@@ -155,20 +155,42 @@ register_tools() {
 }
 
 # ---------------------------------------------------------------------------
-# 3. Register Agent (single primary agent)
+# 3. Register Agents (multi-agent system: triage + investigation + postmortem)
 # ---------------------------------------------------------------------------
-register_agents() {
-  log_info "Registering Agent Builder agent..."
+# Multi-agent agents (registered in order)
+MULTI_AGENT_LIST=(
+  "triage-agent"
+  "investigation-agent"
+  "postmortem-agent"
+)
+# Fallback: single-agent (only in full mode)
+FALLBACK_AGENT="ops-agent"
 
-  for agent_file in "${AGENTS_DIR}"/*.json; do
-    local agent_name
-    agent_name="$(basename "${agent_file}" .json)"
-    log_info "  Registering agent: ${agent_name}..."
-    kbn_call POST "/api/agent_builder/agents" -d @"${agent_file}"
-    echo
+register_agents() {
+  log_info "Registering Agent Builder agents (multi-agent system)..."
+
+  for agent_name in "${MULTI_AGENT_LIST[@]}"; do
+    local agent_file="${AGENTS_DIR}/${agent_name}.json"
+    if [[ -f "${agent_file}" ]]; then
+      log_info "  Registering agent: ${agent_name}..."
+      kbn_call POST "/api/agent_builder/agents" -d @"${agent_file}"
+      echo
+    else
+      log_error "  Agent file not found: ${agent_file}"
+    fi
   done
 
-  log_info "Agent registered."
+  if [[ "${MVP_MODE}" == "false" ]]; then
+    local fallback_file="${AGENTS_DIR}/${FALLBACK_AGENT}.json"
+    if [[ -f "${fallback_file}" ]]; then
+      log_info "  [FALLBACK] Registering single-agent fallback: ${FALLBACK_AGENT}..."
+      kbn_call POST "/api/agent_builder/agents" -d @"${fallback_file}"
+      echo
+    fi
+    log_info "All agents registered (${#MULTI_AGENT_LIST[@]} multi-agent + 1 fallback)."
+  else
+    log_info "Registered ${#MULTI_AGENT_LIST[@]} agents (multi-agent system)."
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -250,10 +272,17 @@ main() {
   log_info ""
   log_info "Next steps:"
   log_info "  1. Run: python3 scripts/generate-demo-data.py  (to load 12K+ demo logs)"
-  log_info "  2. Open Kibana > Agents and chat with 'Self-Healing Infrastructure Intelligence'"
+  log_info "  2. Open Kibana > Agents to see all 3 agents: Triage, Investigation, PostMortem"
+  log_info "  3. Trigger the multi-agent workflow or chat with individual agents"
   log_info ""
-  log_info "Suggested demo prompt:"
-  log_info '  "Payment service errors are spiking. What is happening?"'
+  log_info "Multi-agent workflow trigger:"
+  log_info '  Workflow: "Multi-Agent Incident Response"'
+  log_info '  Input: affected_service="orders-service", reported_severity="critical"'
+  log_info ""
+  log_info "Or chat with individual agents:"
+  log_info '  Triage Agent: "Payment service errors are spiking. What is happening?"'
+  log_info '  Investigation Agent: "Deep-dive into orders-service connection pool errors"'
+  log_info '  PostMortem Agent: "Generate post-mortem for INC-4091"'
 }
 
 main "$@"

@@ -12,6 +12,8 @@ import {
   agentActivities,
   phaseColors,
   phaseLabels,
+  agentColors,
+  agentLabels,
 } from '@/data/mock'
 import {
   AreaChart,
@@ -26,7 +28,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts'
-import { AlertTriangle, Clock, Layers, TrendingUp, BarChart3, GitBranch } from 'lucide-react'
+import { AlertTriangle, Clock, Layers, TrendingUp, BarChart3, GitBranch, ArrowDownRight, Bot } from 'lucide-react'
 
 export function IncidentPage() {
   const incident = incidents[0]
@@ -193,36 +195,62 @@ export function IncidentPage() {
           </Card>
         </div>
 
-        {/* Investigation Timeline */}
+        {/* Multi-Agent Investigation Timeline */}
         <Card>
           <CardHeader>
-            <CardTitle>Investigation Timeline</CardTitle>
-            <span className="text-xs text-text-dim">OpsAgent phase progression</span>
+            <CardTitle>
+              <div className="flex items-center gap-2">
+                <Bot className="h-4 w-4 text-elastic" />
+                Multi-Agent Investigation Timeline
+              </div>
+            </CardTitle>
+            <span className="text-xs text-text-dim">{agentActivities.length} events across 3 agents</span>
           </CardHeader>
           <CardContent>
             <div className="relative">
               <div className="absolute left-3 top-0 bottom-0 w-px bg-border" />
               <div className="space-y-4">
-                {agentActivities.map(a => (
-                  <div key={a.id} className="relative pl-8 animate-fade-in-up">
-                    <div
-                      className="absolute left-1.5 top-1 h-3 w-3 rounded-full border-2"
-                      style={{ borderColor: phaseColors[a.phase], backgroundColor: `${phaseColors[a.phase]}30` }}
-                    />
-                    <div className="rounded-lg border border-border bg-surface-2 p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge color={phaseColors[a.phase]} className="text-[10px]">{phaseLabels[a.phase]}</Badge>
-                        <span className="text-xs font-medium text-text">{a.action}</span>
-                        <StatusDot status={a.status} size="sm" />
-                        <span className="ml-auto text-[10px] font-mono text-text-dim">
-                          {new Date(a.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-                        </span>
+                {agentActivities.map((a, idx) => {
+                  const prevAgent = idx > 0 ? agentActivities[idx - 1].agent : null
+                  const isHandoff = prevAgent !== null && prevAgent !== a.agent
+
+                  return (
+                    <div key={a.id}>
+                      {isHandoff && (
+                        <div className="relative pl-8 mb-4">
+                          <div className="absolute left-1.5 top-1 h-3 w-3 flex items-center justify-center">
+                            <ArrowDownRight className="h-3 w-3 text-elastic" />
+                          </div>
+                          <div className="flex items-center gap-2 rounded-lg border border-elastic/20 bg-elastic-bg px-3 py-1.5">
+                            <span className="text-[10px] font-mono text-elastic">HANDOFF</span>
+                            <span className="text-[10px] text-text-dim">
+                              {agentLabels[prevAgent!]} {"\u2192"} {agentLabels[a.agent]}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="relative pl-8 animate-fade-in-up">
+                        <div
+                          className="absolute left-1.5 top-1 h-3 w-3 rounded-full border-2"
+                          style={{ borderColor: agentColors[a.agent], backgroundColor: `${agentColors[a.agent]}30` }}
+                        />
+                        <div className="rounded-lg border border-border bg-surface-2 p-3">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge color={agentColors[a.agent]} className="text-[10px]">{agentLabels[a.agent]}</Badge>
+                            <Badge color={phaseColors[a.phase]} className="text-[9px]">{phaseLabels[a.phase]}</Badge>
+                            <span className="text-xs font-medium text-text">{a.action}</span>
+                            <StatusDot status={a.status} size="sm" />
+                            <span className="ml-auto text-[10px] font-mono text-text-dim">
+                              {new Date(a.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-text-muted">{a.detail}</p>
+                          {a.esqlQuery && <EsqlBlock query={a.esqlQuery} className="mt-2" />}
+                        </div>
                       </div>
-                      <p className="text-xs text-text-muted">{a.detail}</p>
-                      {a.esqlQuery && <EsqlBlock query={a.esqlQuery} className="mt-2" />}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </CardContent>

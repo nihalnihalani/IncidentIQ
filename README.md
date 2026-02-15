@@ -12,12 +12,13 @@ IT teams lose **40% of incident response time** context-switching across tools. 
 
 ## The Solution
 
-Self-Healing Infrastructure Intelligence uses a single **OpsAgent** powered by Elasticsearch Agent Builder with four operational phases:
+Self-Healing Infrastructure Intelligence uses a **3-agent system** orchestrated by an **Elastic Workflow**, each agent specializing in a distinct phase of incident response:
 
-1. **Triage Phase** -- Hybrid search across incident knowledge using `FORK -> FUSE -> RERANK` (RRF fusion of lexical + semantic search)
-2. **Investigation Phase** -- Root cause discovery via `significant_terms` aggregation (finds statistically *unusual* patterns, not just common ones) + pipeline aggregations for trend prediction
-3. **Alert Phase** -- Reverse search using `percolate queries` (incidents search for matching rules, not the other way around)
-4. **Action Phase** -- Automated remediation via bidirectional `Workflow <-> Agent` feedback loops (Slack alerts, Jira tickets)
+1. **Triage Agent** -- First responder. Runs hybrid search via `FORK -> FUSE -> RERANK` (RRF fusion of lexical + semantic search), classifies severity (P1-P4), and hands off findings to the Investigation Agent.
+2. **Investigation Agent** -- Deep-dive analyst. Uses `significant_terms` aggregation (statistically *unusual* patterns), pipeline aggregations (derivative + acceleration), and `percolate queries` (reverse search) to find root cause and blast radius.
+3. **PostMortem Agent** -- Report synthesizer. Consumes findings from both Triage and Investigation agents to generate a blameless post-mortem, then triggers Slack/Jira notifications.
+
+The workflow orchestrates all 3 agents sequentially, passing each agent's findings to the next via `{{ steps.*.output.content }}` template variables.
 
 ## Hidden Elasticsearch Gems Showcased
 
@@ -35,41 +36,55 @@ Self-Healing Infrastructure Intelligence uses a single **OpsAgent** powered by E
 
 ```
                     +--------------------------------------+
-                    |  ALERT TRIGGER (Kibana Rule fires)   |
+                    |  ALERT TRIGGER / MANUAL / WEBHOOK     |
                     +------------------+-------------------+
                                        |
                     +------------------v-------------------+
-                    |    WORKFLOW: incident-response        |
-                    |    (Elastic Workflows - YAML)         |
+                    |    WORKFLOW: Multi-Agent Incident     |
+                    |    Response (Elastic Workflows YAML)  |
+                    +------------------+-------------------+
+                                       |
+          +----------------------------+----------------------------+
+          |                            |                            |
+          v                            v                            v
+  +-----------------+        +-----------------+        +-----------------+
+  | WORKFLOW STEP:  |        | WORKFLOW STEP:  |        | WORKFLOW STEP:  |
+  | Percolate alert |        | ES|QL error     |        | Service owner   |
+  | rules (reverse) |        | breakdown       |        | lookup          |
+  +-----------------+        +-----------------+        +-----------------+
+          |                            |                            |
+          +----------------------------+----------------------------+
+                                       |
+                    +------------------v-------------------+
+                    |  AGENT 1: Triage Agent               |
+                    |  Tools: hybrid_rag_search,           |
+                    |    error_trend_analysis,              |
+                    |    service_error_breakdown            |
+                    |  Output: Severity + initial findings  |
+                    +------------------+-------------------+
+                                       | handoff
+                    +------------------v-------------------+
+                    |  AGENT 2: Investigation Agent         |
+                    |  Tools: anomaly_detector,             |
+                    |    significant_terms, percolate,      |
+                    |    pipeline aggs, blast radius        |
+                    |  Output: Root cause + remediation     |
+                    +------------------+-------------------+
+                                       | handoff
+                    +------------------v-------------------+
+                    |  AGENT 3: PostMortem Agent            |
+                    |  Tools: hybrid_rag_search,            |
+                    |    platform search                    |
+                    |  Output: Blameless post-mortem        |
                     +------------------+-------------------+
                                        |
               +------------------------+------------------------+
               |                        |                        |
               v                        v                        v
-   +-------------------+   +-------------------+   +-------------------+
-   |  ES|QL TOOL:      |   |  OpsAgent:        |   |  WORKFLOW STEP:   |
-   |  FORK -> FUSE ->  |   |  Analyzes with    |   |  Percolate new    |
-   |  RERANK            |   |  significant_     |   |  incident against |
-   |                    |   |  terms + pipeline  |   |  all stored       |
-   |  Hybrid search     |   |  aggs to find     |   |  alert rules      |
-   |  in pure ES|QL     |   |  root cause       |   |  (reverse search) |
-   +---------+----------+   +---------+----------+   +---------+----------+
-             |                        |                        |
-             +------------+-----------+                        |
-                          |                                    |
-             +------------v-----------+           +------------v-----------+
-             |  PIPELINE AGGS:        |           |  MATCHED RULES         |
-             |  Derivative +          |           |  trigger targeted      |
-             |  acceleration to       |           |  notifications to      |
-             |  predict escalation    |           |  rule owners           |
-             +------------+-----------+           +------------+-----------+
-                          |                                    |
-             +------------v-----------+           +------------v-----------+
-             |  TRANSFORMS:           |           |  WORKFLOW ACTIONS:     |
-             |  Pre-computed service   |           |  Slack alert           |
-             |  health summaries for   |           |  Jira ticket           |
-             |  instant analytics      |           |  Audit logging         |
-             +-------------------------+           +------------------------+
+    +------------------+    +------------------+    +------------------+
+    | Slack notify     |    | Jira P1/P2       |    | Audit log to     |
+    | (owner channel)  |    | ticket creation  |    | Elasticsearch    |
+    +------------------+    +------------------+    +------------------+
 ```
 
 ## Project Structure
@@ -77,8 +92,11 @@ Self-Healing Infrastructure Intelligence uses a single **OpsAgent** powered by E
 ```
 elasticsearch/
 +-- opsagent-backend/           # Elasticsearch Agent Builder backend
-|   +-- agents/                 # Agent definitions
-|   |   +-- ops-agent.json      # Single OpsAgent (triage + investigation)
+|   +-- agents/                 # Agent definitions (multi-agent system)
+|   |   +-- triage-agent.json   # First responder: hybrid search, severity classification
+|   |   +-- investigation-agent.json  # Deep-dive: significant_terms, percolate, blast radius
+|   |   +-- postmortem-agent.json     # Synthesizer: blameless post-mortem, Slack, Jira
+|   |   +-- ops-agent.json      # Fallback: single-agent mode
 |   +-- tools/                  # ES|QL & index search tool definitions
 |   |   +-- hybrid_rag_search.json        # FORK/FUSE/RRF hybrid search
 |   |   +-- error_trend_analysis.json     # Time-bucketed error trends
@@ -92,7 +110,7 @@ elasticsearch/
 |   |   +-- service-owners.json           # Service ownership data
 |   |   +-- service-health-realtime.json  # Transform destination
 |   +-- workflows/              # Elastic Workflow YAML definitions
-|   |   +-- incident-response.yaml        # Bidirectional workflow
+|   |   +-- incident-response.yaml        # Multi-agent orchestration (3 agents + notifications)
 |   +-- transforms/             # Continuous data summarization
 |   |   +-- service-health-summary.json
 |   +-- scripts/
@@ -107,7 +125,7 @@ elasticsearch/
 |   |   |   +-- incident.tsx              # Investigation + animated pipeline viz
 |   |   |   +-- alerts.tsx                # Percolate alert rules
 |   |   |   +-- blast-radius.tsx          # Animated cascade propagation
-|   |   |   +-- agent-activity.tsx        # Agent phase timeline
+|   |   |   +-- agent-activity.tsx        # Multi-agent timeline with handoff indicators
 |   |   |   +-- demo.tsx                  # 3-min guided demo + before/after card
 |   |   +-- components/         # Reusable UI components
 |   |   |   +-- ui/             # Card, Badge, StatusDot, PipelineViz, etc.
@@ -181,11 +199,12 @@ The demo follows a story-driven "3 AM outage" narrative:
 
 ## Key Design Decisions
 
-1. **1 Agent, 4 Phases** (not 4 agents) -- Fewer agents = less tool confusion = more reliable demo
-2. **Pre-built ES|QL tools with guarded parameters** -- Never rely on dynamic ES|QL generation (LLMs mix ES|QL and SQL)
-3. **3-tier fallback queries** -- Every tool has full/simplified/basic versions for demo reliability
-4. **Static frontend + Kibana chat** -- Dashboard provides visual context, agent interaction in Kibana (split-screen demo)
-5. **Engineered demo data** -- 12K+ logs with distinct error profiles per service, ensuring significant_terms produces compelling results
+1. **3 Specialized Agents, 1 Workflow** -- Each agent has a distinct tool set and system prompt; the workflow orchestrates handoffs and passes context between them
+2. **Agent handoff via workflow templates** -- Each agent receives the previous agent's full output via `{{ steps.*.output.content }}`, enabling informed decision-making
+3. **Pre-built ES|QL tools with guarded parameters** -- Never rely on dynamic ES|QL generation (LLMs mix ES|QL and SQL)
+4. **3-tier fallback queries** -- Every tool has full/simplified/basic versions for demo reliability
+5. **Static frontend + Kibana chat** -- Dashboard provides visual context, agent interaction in Kibana (split-screen demo)
+6. **Engineered demo data** -- 12K+ logs with distinct error profiles per service, ensuring significant_terms produces compelling results
 
 ## Judging Criteria Alignment
 
@@ -197,7 +216,7 @@ The demo follows a story-driven "3 AM outage" narrative:
 | **Use of Elastic Stack** | Deep platform features, not just basic search |
 | **Demo Clarity** | 3-minute story-driven narrative, not a feature tour |
 | **Design/Usability** | Dark SRE-themed dashboard with blast radius visualization |
-| **Agent Builder Usage** | Custom agent, ES\|QL tools, workflows, MCP-ready |
+| **Agent Builder Usage** | 3 specialized agents, ES\|QL tools, multi-agent workflow orchestration |
 
 ## Frontend Highlights
 
@@ -210,8 +229,9 @@ The dashboard is designed for demo impact -- every animation reinforces the inci
 
 ## What Makes This Different
 
-- **Not "just a chatbot"** -- The agent takes ACTION (Slack, Jira) and uses reverse search (percolate)
-- **Not "just a dashboard"** -- The agent REASONS with significant_terms and predicts with pipeline aggregations
+- **True multi-agent orchestration** -- 3 agents with distinct roles, not a single agent with phases. Each agent has specialized tools and passes findings to the next via workflow handoffs.
+- **Not "just a chatbot"** -- Agents take ACTION (Slack, Jira, audit) and use reverse search (percolate)
+- **Not "just a dashboard"** -- Agents REASON with significant_terms and predict with pipeline aggregations
 - **Not a feature tour** -- A continuous incident story with a beginning, middle, and end
 - **Deep Elastic knowledge** -- Uses features most teams don't know exist
 

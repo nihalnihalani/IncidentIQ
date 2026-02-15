@@ -3,68 +3,81 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusDot } from '@/components/ui/status-dot'
 import { EsqlBlock } from '@/components/ui/esql-block'
-import { agentActivities, phaseColors, phaseLabels } from '@/data/mock'
-import type { AgentPhase } from '@/data/mock'
-import { Bot, ArrowRight, RotateCw } from 'lucide-react'
+import { agentActivities, phaseColors, phaseLabels, agentColors, agentLabels } from '@/data/mock'
+import type { AgentPhase, AgentName } from '@/data/mock'
+import { Bot, ArrowRight, ArrowDownRight } from 'lucide-react'
 import { useState } from 'react'
 
-const phaseTypes: (AgentPhase | 'all')[] = ['all', 'triage', 'investigation', 'alert', 'action']
+type FilterType = 'all' | AgentName
+const filterTypes: FilterType[] = ['all', 'triage-agent', 'investigation-agent', 'postmortem-agent']
 
 export function AgentActivityPage() {
-  const [filter, setFilter] = useState<AgentPhase | 'all'>('all')
+  const [filter, setFilter] = useState<FilterType>('all')
 
   const filtered = filter === 'all'
     ? agentActivities
-    : agentActivities.filter(a => a.phase === filter)
+    : agentActivities.filter(a => a.agent === filter)
 
   return (
     <div className="min-h-screen">
       <TopBar title="Activity Log" />
 
       <div className="p-6 space-y-6">
-        {/* OpsAgent Architecture */}
+        {/* Multi-Agent Architecture */}
         <Card glow>
           <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-elastic/15">
-              <RotateCw className="h-5 w-5 text-elastic" />
+              <Bot className="h-5 w-5 text-elastic" />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-bold text-text">OpsAgent Phase Pipeline</h3>
-                <Badge color="#00bfb3">Architecture</Badge>
+                <h3 className="text-sm font-bold text-text">Multi-Agent Incident Response</h3>
+                <Badge color="#00bfb3">3 Agents</Badge>
               </div>
               <p className="text-xs text-text-muted leading-relaxed">
-                A single <strong className="text-elastic">OpsAgent</strong> progresses through 4 phases:
-                <strong className="text-elastic"> Triage</strong> (FORK/FUSE/RERANK search),
-                <strong className="text-agent-blue"> Investigation</strong> (significant_terms, blast radius, pipeline aggs),
-                <strong className="text-agent-amber"> Alert</strong> (percolate matching),
-                <strong className="text-agent-purple"> Action</strong> (Slack/Jira/audit).
+                Three specialized agents orchestrated by an Elastic Workflow:
+                <strong className="text-elastic"> Triage Agent</strong> (FORK/FUSE/RERANK search, severity classification),
+                <strong className="text-agent-blue"> Investigation Agent</strong> (significant_terms, pipeline aggs, percolate, blast radius),
+                <strong className="text-agent-purple"> PostMortem Agent</strong> (blameless post-mortem, Slack/Jira, audit).
+                Each agent has its own tool set and hands off findings to the next.
               </p>
             </div>
           </div>
 
-          {/* Phase Flow */}
-          <div className="mt-4 flex items-center justify-center gap-2">
-            {(['triage', 'investigation', 'alert', 'action'] as AgentPhase[]).map((phase, i) => (
-              <div key={phase} className="flex items-center gap-2">
+          {/* Agent Flow with handoff arrows */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            {(['triage-agent', 'investigation-agent', 'postmortem-agent'] as AgentName[]).map((agent, i) => (
+              <div key={agent} className="flex items-center gap-3">
                 <div
-                  className="flex items-center gap-1.5 rounded-lg border px-3 py-2"
-                  style={{ borderColor: `${phaseColors[phase]}40`, backgroundColor: `${phaseColors[phase]}10` }}
+                  className="flex items-center gap-2 rounded-lg border px-4 py-2.5"
+                  style={{ borderColor: `${agentColors[agent]}40`, backgroundColor: `${agentColors[agent]}10` }}
                 >
-                  <Bot className="h-3.5 w-3.5" style={{ color: phaseColors[phase] }} />
-                  <span className="text-[10px] font-bold" style={{ color: phaseColors[phase] }}>{phaseLabels[phase].replace(' Phase', '')}</span>
+                  <Bot className="h-4 w-4" style={{ color: agentColors[agent] }} />
+                  <div>
+                    <span className="text-[11px] font-bold block" style={{ color: agentColors[agent] }}>
+                      {agentLabels[agent]}
+                    </span>
+                    <span className="text-[9px] text-text-dim">
+                      {agent === 'triage-agent' && 'hybrid_rag_search, error_trends'}
+                      {agent === 'investigation-agent' && 'significant_terms, percolate'}
+                      {agent === 'postmortem-agent' && 'report, slack, jira'}
+                    </span>
+                  </div>
                 </div>
-                {i < 3 && (
-                  <ArrowRight className="h-3.5 w-3.5 text-text-dim" />
+                {i < 2 && (
+                  <div className="flex flex-col items-center">
+                    <ArrowRight className="h-4 w-4 text-text-dim" />
+                    <span className="text-[8px] text-text-dim font-mono">handoff</span>
+                  </div>
                 )}
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Filter Tabs */}
+        {/* Filter Tabs by Agent */}
         <div className="flex items-center gap-2">
-          {phaseTypes.map(type => (
+          {filterTypes.map(type => (
             <button
               key={type}
               onClick={() => setFilter(type)}
@@ -75,11 +88,11 @@ export function AgentActivityPage() {
               }`}
               style={
                 type !== 'all' && filter === type
-                  ? { backgroundColor: `${phaseColors[type as AgentPhase]}15`, color: phaseColors[type as AgentPhase], borderColor: `${phaseColors[type as AgentPhase]}30` }
+                  ? { backgroundColor: `${agentColors[type as AgentName]}15`, color: agentColors[type as AgentName], borderColor: `${agentColors[type as AgentName]}30` }
                   : undefined
               }
             >
-              {type === 'all' ? 'All Activity' : phaseLabels[type as AgentPhase]}
+              {type === 'all' ? 'All Activity' : agentLabels[type as AgentName]}
             </button>
           ))}
         </div>
@@ -99,52 +112,76 @@ export function AgentActivityPage() {
             <div className="relative">
               <div className="absolute left-4 top-0 bottom-0 w-px bg-border" />
               <div className="space-y-4">
-                {filtered.map(a => (
-                  <div key={a.id} className="relative pl-10 animate-fade-in-up">
-                    <div
-                      className="absolute left-2 top-2 h-4 w-4 rounded-full border-2 flex items-center justify-center"
-                      style={{
-                        borderColor: phaseColors[a.phase],
-                        backgroundColor: `${phaseColors[a.phase]}20`,
-                      }}
-                    >
-                      {a.status === 'running' && (
-                        <span
-                          className="absolute h-4 w-4 rounded-full animate-ping opacity-30"
-                          style={{ backgroundColor: phaseColors[a.phase] }}
-                        />
-                      )}
-                    </div>
+                {filtered.map((a, idx) => {
+                  // Detect agent handoff
+                  const prevAgent = idx > 0 ? filtered[idx - 1].agent : null
+                  const isHandoff = prevAgent !== null && prevAgent !== a.agent
 
-                    <div className="rounded-lg border border-border bg-surface-2 p-4 transition-colors hover:bg-surface-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Badge color={phaseColors[a.phase]}>{phaseLabels[a.phase]}</Badge>
-                          <StatusDot status={a.status} size="sm" />
-                          <span className="text-xs font-medium text-text">{a.action}</span>
+                  return (
+                    <div key={a.id}>
+                      {/* Handoff indicator */}
+                      {isHandoff && (
+                        <div className="relative pl-10 mb-4">
+                          <div className="absolute left-2 top-1 h-4 w-4 flex items-center justify-center">
+                            <ArrowDownRight className="h-3.5 w-3.5 text-elastic" />
+                          </div>
+                          <div className="flex items-center gap-2 rounded-lg border border-elastic/20 bg-elastic-bg px-3 py-1.5">
+                            <span className="text-[10px] font-mono text-elastic">HANDOFF</span>
+                            <span className="text-[10px] text-text-dim">
+                              {agentLabels[prevAgent!]} {"\u2192"} {agentLabels[a.agent]}
+                            </span>
+                          </div>
                         </div>
-                        <span className="text-[10px] font-mono text-text-dim">
-                          {new Date(a.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-                        </span>
+                      )}
+
+                      <div className="relative pl-10 animate-fade-in-up">
+                        <div
+                          className="absolute left-2 top-2 h-4 w-4 rounded-full border-2 flex items-center justify-center"
+                          style={{
+                            borderColor: agentColors[a.agent],
+                            backgroundColor: `${agentColors[a.agent]}20`,
+                          }}
+                        >
+                          {a.status === 'running' && (
+                            <span
+                              className="absolute h-4 w-4 rounded-full animate-ping opacity-30"
+                              style={{ backgroundColor: agentColors[a.agent] }}
+                            />
+                          )}
+                        </div>
+
+                        <div className="rounded-lg border border-border bg-surface-2 p-4 transition-colors hover:bg-surface-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Badge color={agentColors[a.agent]}>{agentLabels[a.agent]}</Badge>
+                              <Badge color={phaseColors[a.phase]} className="text-[9px]">{phaseLabels[a.phase]}</Badge>
+                              <StatusDot status={a.status} size="sm" />
+                              <span className="text-xs font-medium text-text">{a.action}</span>
+                            </div>
+                            <span className="text-[10px] font-mono text-text-dim">
+                              {new Date(a.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
+                            </span>
+                          </div>
+
+                          <p className="text-xs text-text-muted leading-relaxed">{a.detail}</p>
+
+                          <div className="mt-2 flex items-center gap-3">
+                            {a.toolUsed && (
+                              <span className="text-[10px] font-mono text-elastic bg-elastic-bg rounded px-1.5 py-0.5">
+                                tool: {a.toolUsed}
+                              </span>
+                            )}
+                            <span className="text-[10px] font-mono text-text-dim">
+                              target: {a.target}
+                            </span>
+                          </div>
+
+                          {a.esqlQuery && <EsqlBlock query={a.esqlQuery} className="mt-3" />}
+                        </div>
                       </div>
-
-                      <p className="text-xs text-text-muted leading-relaxed">{a.detail}</p>
-
-                      <div className="mt-2 flex items-center gap-3">
-                        {a.toolUsed && (
-                          <span className="text-[10px] font-mono text-elastic bg-elastic-bg rounded px-1.5 py-0.5">
-                            tool: {a.toolUsed}
-                          </span>
-                        )}
-                        <span className="text-[10px] font-mono text-text-dim">
-                          target: {a.target}
-                        </span>
-                      </div>
-
-                      {a.esqlQuery && <EsqlBlock query={a.esqlQuery} className="mt-3" />}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </CardContent>

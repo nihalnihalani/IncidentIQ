@@ -1,4 +1,4 @@
-name: Self-Healing Infrastructure Response
+name: Multi-Agent Incident Response
 enabled: true
 triggers:
   - type: manual
@@ -14,10 +14,10 @@ inputs:
 
 steps:
   # =========================================================================
-  # PHASE 1: DATA GATHERING
+  # PHASE 1: DATA GATHERING (workflow-level, before any agent)
   # =========================================================================
 
-  # Step 1: Percolate the incident against stored alert rules
+  # Step 1: Percolate the incident against stored alert rules (reverse search)
   - name: check_alert_rules
     type: elasticsearch.search
     with:
@@ -54,68 +54,124 @@ steps:
           service_name: "{{ inputs.affected_service }}"
 
   # =========================================================================
-  # PHASE 2: AGENT ANALYSIS (bidirectional - workflow calls agent)
+  # PHASE 2: TRIAGE AGENT -- First responder, severity classification
   # =========================================================================
 
-  # Step 4: Have OpsAgent analyze all gathered data
-  - name: agent_analysis
+  - name: triage_analysis
     type: ai.agent
     with:
-      agent_id: ops-agent
+      agent_id: triage-agent
       message: >
-        INCIDENT RESPONSE WORKFLOW TRIGGERED.
+        INCIDENT TRIAGE REQUEST
 
         Service: {{ inputs.affected_service }}
         Reported severity: {{ inputs.reported_severity }}
         Description: {{ inputs.incident_description }}
 
-        DATA GATHERED BY WORKFLOW:
+        PRELIMINARY DATA (gathered by workflow):
+        - Alert rules matched: {{ steps.check_alert_rules.output.hits.total.value }} rule(s)
+        - Recent error types: {{ steps.recent_errors.output | json }}
+        - Service owner: {{ steps.get_service_owner.output.hits.hits.0._source | json }}
 
-        Alert rules matched: {{ steps.check_alert_rules.output.hits.total.value }} rule(s)
-        Alert details: {{ steps.check_alert_rules.output.hits.hits | json }}
-
-        Recent error breakdown: {{ steps.recent_errors.output | json }}
-
-        Service owner: {{ steps.get_service_owner.output.hits.hits.0._source | json }}
-
-        Please perform full triage and investigation:
-        1. Analyze the error breakdown and identify the primary issue.
-        2. Use your tools to check error trends and find similar past incidents.
-        3. Use the anomaly_detector tool to find statistically unusual patterns.
-        4. Provide severity classification, root cause hypothesis, and recommended actions.
+        Please perform rapid triage:
+        1. Search for similar past incidents using hybrid_rag_search.
+        2. Analyze error trends for {{ inputs.affected_service }}.
+        3. Get the error breakdown.
+        4. Classify severity and recommend what the Investigation Agent should focus on.
 
   # =========================================================================
-  # PHASE 3: SEVERITY-BASED NOTIFICATION
+  # PHASE 3: INVESTIGATION AGENT -- Deep-dive root cause analysis
   # =========================================================================
 
-  # Step 5: Extract severity for routing
+  - name: investigation_analysis
+    type: ai.agent
+    with:
+      agent_id: investigation-agent
+      message: >
+        INVESTIGATION REQUEST (handoff from Triage Agent)
+
+        Service: {{ inputs.affected_service }}
+        Description: {{ inputs.incident_description }}
+
+        TRIAGE AGENT FINDINGS:
+        {{ steps.triage_analysis.output.content }}
+
+        ALERT RULES MATCHED (via percolate):
+        {{ steps.check_alert_rules.output.hits.hits | json }}
+
+        Please perform deep-dive investigation:
+        1. Run significant_terms on logs-opsagent-* for {{ inputs.affected_service }} to find the ROOT CAUSE (statistically unusual errors).
+        2. Run pipeline aggregations (derivative + moving_avg) to detect error ACCELERATION.
+        3. Run percolate query on alert-rules to find ALL matching alert rules.
+        4. Assess blast radius across related services.
+        5. Provide root cause with confidence level and recommended remediation.
+
+  # =========================================================================
+  # PHASE 4: POSTMORTEM AGENT -- Synthesize findings into post-mortem
+  # =========================================================================
+
+  - name: postmortem_report
+    type: ai.agent
+    with:
+      agent_id: postmortem-agent
+      message: >
+        POST-MORTEM GENERATION REQUEST
+
+        Service: {{ inputs.affected_service }}
+        Description: {{ inputs.incident_description }}
+        Workflow execution: {{ execution.id }}
+
+        TRIAGE AGENT FINDINGS:
+        {{ steps.triage_analysis.output.content }}
+
+        INVESTIGATION AGENT FINDINGS:
+        {{ steps.investigation_analysis.output.content }}
+
+        SERVICE OWNER:
+        {{ steps.get_service_owner.output.hits.hits.0._source | json }}
+
+        Please generate a complete blameless post-mortem:
+        1. Search for prevention strategies from similar past incidents.
+        2. Synthesize triage + investigation findings into a structured report.
+        3. Include timeline, root cause, blast radius, and action items.
+
+  # =========================================================================
+  # PHASE 5: SEVERITY-BASED NOTIFICATION
+  # =========================================================================
+
+  # Extract severity from triage for routing
   - name: extract_severity
     type: ai.prompt
     with:
       prompt: >
         Extract ONLY the severity classification from this analysis.
         Respond with exactly one of: P1, P2, P3, P4. Nothing else.
-        Analysis: {{ steps.agent_analysis.output.content }}
+        Analysis: {{ steps.triage_analysis.output.content }}
 
-  # Step 6: Send Slack notification
+  # Send Slack notification with full multi-agent analysis
   - name: notify_slack
     type: slack
     with:
       channel: "{{ steps.get_service_owner.output.hits.hits.0._source.slack_channel | default: '#ops-alerts' }}"
       message: >
-        *Self-Healing Infrastructure Intelligence Alert*
+        *Multi-Agent Incident Response Alert*
 
         *Service:* {{ inputs.affected_service }}
         *Severity:* {{ steps.extract_severity.output.content }}
         *Alert Rules Matched:* {{ steps.check_alert_rules.output.hits.total.value }}
 
-        *AI Analysis:*
-        {{ steps.agent_analysis.output.content }}
+        *Triage Summary:*
+        {{ steps.triage_analysis.output.content }}
+
+        *Investigation Root Cause:*
+        {{ steps.investigation_analysis.output.content }}
+
+        *Post-Mortem:*
+        {{ steps.postmortem_report.output.content }}
 
         *Owner:* {{ steps.get_service_owner.output.hits.hits.0._source.owner_team | default: 'unassigned' }}
-        *Runbook:* {{ steps.get_service_owner.output.hits.hits.0._source.runbook_url | default: 'none' }}
 
-  # Step 7: Create Jira ticket for P1/P2
+  # Create Jira ticket for P1/P2
   - name: check_needs_jira
     type: if
     condition: "{{ steps.extract_severity.output.content contains 'P1' or steps.extract_severity.output.content contains 'P2' }}"
@@ -127,32 +183,27 @@ steps:
           issue_type: "Incident"
           summary: "[{{ steps.extract_severity.output.content }}] {{ inputs.affected_service }} - {{ inputs.incident_description | truncate: 80 }}"
           description: >
-            h2. Incident Report
+            h2. Multi-Agent Incident Report
 
             *Service:* {{ inputs.affected_service }}
             *Severity:* {{ steps.extract_severity.output.content }}
             *Reported:* {{ execution.timestamp }}
 
-            h3. Description
-            {{ inputs.incident_description }}
+            h3. Triage Agent Findings
+            {{ steps.triage_analysis.output.content }}
 
-            h3. AI Analysis
-            {{ steps.agent_analysis.output.content }}
+            h3. Investigation Agent Findings
+            {{ steps.investigation_analysis.output.content }}
 
-            h3. Alert Rules Matched
-            {{ steps.check_alert_rules.output.hits.total.value }} rule(s) matched
-
-            h3. Service Owner
-            Team: {{ steps.get_service_owner.output.hits.hits.0._source.owner_team }}
-            Escalation: {{ steps.get_service_owner.output.hits.hits.0._source.escalation_email }}
+            h3. Post-Mortem
+            {{ steps.postmortem_report.output.content }}
           priority: "{{ steps.extract_severity.output.content == 'P1' | ternary: 'Highest', 'High' }}"
           assignee: "{{ steps.get_service_owner.output.hits.hits.0._source.owner_email }}"
 
   # =========================================================================
-  # PHASE 4: AUDIT LOGGING
+  # PHASE 6: AUDIT LOGGING
   # =========================================================================
 
-  # Step 8: Log the full incident response for audit trail
   - name: log_incident
     type: elasticsearch.index
     with:
@@ -164,6 +215,12 @@ steps:
         reported_severity: "{{ inputs.reported_severity }}"
         classified_severity: "{{ steps.extract_severity.output.content }}"
         alert_rules_matched: "{{ steps.check_alert_rules.output.hits.total.value }}"
-        agent_analysis: "{{ steps.agent_analysis.output.content }}"
+        triage_analysis: "{{ steps.triage_analysis.output.content }}"
+        investigation_analysis: "{{ steps.investigation_analysis.output.content }}"
+        postmortem_report: "{{ steps.postmortem_report.output.content }}"
         owner_team: "{{ steps.get_service_owner.output.hits.hits.0._source.owner_team }}"
         workflow_execution_id: "{{ execution.id }}"
+        agents_used:
+          - "triage-agent"
+          - "investigation-agent"
+          - "postmortem-agent"

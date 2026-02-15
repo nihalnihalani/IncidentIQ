@@ -1,6 +1,7 @@
 export type Severity = 'critical' | 'high' | 'medium' | 'low'
 export type IncidentStatus = 'active' | 'investigating' | 'mitigating' | 'resolved'
 export type AgentPhase = 'triage' | 'investigation' | 'alert' | 'action'
+export type AgentName = 'triage-agent' | 'investigation-agent' | 'postmortem-agent'
 
 export interface Incident {
   id: string
@@ -27,6 +28,7 @@ export interface ServiceHealth {
 export interface AgentActivity {
   id: string
   phase: AgentPhase
+  agent: AgentName
   action: string
   target: string
   timestamp: string
@@ -131,6 +133,7 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '1',
     phase: 'triage',
+    agent: 'triage-agent',
     action: 'FORK -> FUSE -> RERANK pipeline',
     target: 'orders-service incident knowledge',
     timestamp: '2026-02-15T03:07:30Z',
@@ -142,6 +145,7 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '2',
     phase: 'investigation',
+    agent: 'investigation-agent',
     action: 'significant_terms -- root cause discovery',
     target: 'orders-service error logs',
     timestamp: '2026-02-15T03:08:00Z',
@@ -152,6 +156,7 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '3',
     phase: 'investigation',
+    agent: 'investigation-agent',
     action: 'Blast radius mapping -- downstream impact',
     target: 'orders-service dependencies',
     timestamp: '2026-02-15T03:08:30Z',
@@ -162,6 +167,7 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '4',
     phase: 'investigation',
+    agent: 'investigation-agent',
     action: 'Error trend prediction -- pipeline aggregations',
     target: 'orders-service error rate',
     timestamp: '2026-02-15T03:09:00Z',
@@ -173,6 +179,7 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '5',
     phase: 'alert',
+    agent: 'investigation-agent',
     action: 'Percolate -- reverse search match',
     target: 'INC-4091 against alert rules',
     timestamp: '2026-02-15T03:09:00Z',
@@ -183,6 +190,7 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '6',
     phase: 'action',
+    agent: 'postmortem-agent',
     action: 'Slack alert -- #incidents-critical',
     target: 'SRE on-call team',
     timestamp: '2026-02-15T03:09:15Z',
@@ -193,6 +201,7 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '7',
     phase: 'action',
+    agent: 'postmortem-agent',
     action: 'Jira ticket created -- OPS-2847',
     target: 'SRE Board',
     timestamp: '2026-02-15T03:09:30Z',
@@ -203,7 +212,8 @@ export const agentActivities: AgentActivity[] = [
   {
     id: '8',
     phase: 'action',
-    action: 'Audit log -- incident response recorded',
+    agent: 'postmortem-agent',
+    action: 'Post-mortem generated + audit log recorded',
     target: 'incident-audit index',
     timestamp: '2026-02-15T03:09:30Z',
     status: 'completed',
@@ -351,4 +361,16 @@ export const severityColors: Record<Severity, string> = {
   high: '#ff8c00',
   medium: '#ffd000',
   low: '#44cc44',
+}
+
+export const agentColors: Record<AgentName, string> = {
+  'triage-agent': '#00bfb3',
+  'investigation-agent': '#4488ff',
+  'postmortem-agent': '#8844ff',
+}
+
+export const agentLabels: Record<AgentName, string> = {
+  'triage-agent': 'Triage Agent',
+  'investigation-agent': 'Investigation Agent',
+  'postmortem-agent': 'PostMortem Agent',
 }

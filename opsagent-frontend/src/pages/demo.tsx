@@ -47,7 +47,7 @@ export function DemoPage() {
       id: 0,
       time: '3:07 AM',
       title: 'Alert Fires on Orders-Service',
-      narrator: 'It\'s 3:07 AM. The orders-service just started returning 500s. Customers can\'t checkout. Revenue is bleeding at $12,000 per minute. The OpsAgent wakes up and begins triage.',
+      narrator: 'It\'s 3:07 AM. The orders-service just started returning 500s. Customers can\'t checkout. Revenue is bleeding at $12,000 per minute. The multi-agent workflow triggers -- Triage Agent wakes up first.',
       icon: <AlertTriangle className="h-5 w-5" />,
       route: '/',
       content: (
@@ -73,7 +73,7 @@ export function DemoPage() {
             </div>
           </div>
           <p className="text-xs text-text-dim italic">
-            The OpsAgent detected the anomaly instantly and is already investigating...
+            Multi-agent workflow triggered. Triage Agent is first on the scene...
           </p>
         </div>
       ),
@@ -81,8 +81,8 @@ export function DemoPage() {
     {
       id: 1,
       time: '3:07:30 AM',
-      title: 'OpsAgent Triages with FORK/FUSE',
-      narrator: 'The OpsAgent runs a FORK/FUSE/RERANK pipeline -- a single ES|QL query that does hybrid search, RRF fusion, and ML reranking. No Python. No LangChain. Just ES|QL. It finds 3 similar past incidents in under a second.',
+      title: 'Triage Agent: FORK/FUSE Search',
+      narrator: 'The Triage Agent runs a FORK/FUSE/RERANK pipeline -- a single ES|QL query that does hybrid search, RRF fusion, and ML reranking. No Python. No LangChain. Just ES|QL. It finds 3 similar past incidents and hands off to the Investigation Agent.',
       icon: <GitBranch className="h-5 w-5" />,
       route: '/incident',
       hiddenGem: 'FORK/FUSE/RERANK',
@@ -99,8 +99,8 @@ export function DemoPage() {
     {
       id: 2,
       time: '3:08 AM',
-      title: 'Root Cause: connection_pool_exhausted',
-      narrator: 'The agent doesn\'t look for the most COMMON error. It uses significant_terms to find the most STATISTICALLY UNUSUAL one. The root cause isn\'t "timeout_error" (2,341 occurrences) -- it\'s "connection_pool_exhausted" (score: 97.1).',
+      title: 'Investigation Agent: Root Cause Found',
+      narrator: 'The Investigation Agent receives the Triage handoff and uses significant_terms to find the most STATISTICALLY UNUSUAL error. The root cause isn\'t "timeout_error" (2,341 occurrences) -- it\'s "connection_pool_exhausted" (score: 97.1).',
       icon: <BarChart3 className="h-5 w-5" />,
       route: '/incident',
       hiddenGem: 'significant_terms',
@@ -127,8 +127,8 @@ export function DemoPage() {
     {
       id: 3,
       time: '3:08:30 AM',
-      title: 'Blast Radius Mapped',
-      narrator: 'The agent maps the cascading failure across 5 services. The critical path: api-gateway -> orders-service -> payment-gateway. PostgreSQL connection pool is the epicenter.',
+      title: 'Investigation Agent: Blast Radius',
+      narrator: 'The Investigation Agent maps the cascading failure across 5 services. The critical path: api-gateway -> orders-service -> payment-gateway. PostgreSQL connection pool is the epicenter.',
       icon: <Share2 className="h-5 w-5" />,
       route: '/blast-radius',
       content: (
@@ -191,8 +191,8 @@ export function DemoPage() {
     {
       id: 5,
       time: '3:09:30 AM',
-      title: 'Error Rate Accelerating -- Full Outage in 12 min',
-      narrator: 'Pipeline aggregations (derivative + cumulative_sum) show the error rate isn\'t just rising -- it\'s accelerating at +22%/min. Without intervention: predicted full outage in 12 minutes. The SRE wakes up to a Slack message with full context.',
+      title: 'PostMortem Agent: Report + Notify',
+      narrator: 'The PostMortem Agent synthesizes findings from both Triage and Investigation agents into a blameless post-mortem. Pipeline aggregations show error acceleration at +22%/min. The SRE wakes up to a Slack message with full multi-agent analysis.',
       icon: <TrendingUp className="h-5 w-5" />,
       route: '/incident',
       hiddenGem: 'Pipeline Aggregations',
@@ -214,7 +214,7 @@ export function DemoPage() {
           </div>
 
           <div className="rounded-lg border border-elastic/30 bg-elastic-bg p-4">
-            <p className="text-sm font-bold text-elastic mb-3">Incident Response Complete</p>
+            <p className="text-sm font-bold text-elastic mb-3">Multi-Agent Incident Response Complete</p>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs">
                 <CheckCircle className="h-3.5 w-3.5 text-low" />
@@ -242,7 +242,7 @@ export function DemoPage() {
             >
               <div className="flex items-center gap-2 mb-3">
                 <Users className="h-4 w-4 text-critical" />
-                <span className="text-xs font-bold text-critical uppercase tracking-wider">Without OpsAgent</span>
+                <span className="text-xs font-bold text-critical uppercase tracking-wider">Without Multi-Agent</span>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -278,7 +278,7 @@ export function DemoPage() {
             >
               <div className="flex items-center gap-2 mb-3">
                 <Zap className="h-4 w-4 text-elastic" />
-                <span className="text-xs font-bold text-elastic uppercase tracking-wider">With OpsAgent</span>
+                <span className="text-xs font-bold text-elastic uppercase tracking-wider">With 3-Agent System</span>
               </div>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
