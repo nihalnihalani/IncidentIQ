@@ -13,9 +13,9 @@ import {
   BarChart3,
   ArrowRightLeft,
   TrendingUp,
+  Share2,
   MessageSquare,
   Ticket,
-  Zap,
   CheckCircle,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -41,9 +41,9 @@ export function DemoPage() {
   const story: StoryBeat[] = [
     {
       id: 0,
-      time: '3:00 AM',
-      title: 'The Incident Begins',
-      narrator: 'It\'s 3 AM. Your phone hasn\'t rung yet. But the orders-service just started returning 500s. Customers can\'t checkout. Revenue is bleeding at $12,000 per minute. Nobody knows yet.',
+      time: '3:07 AM',
+      title: 'Alert Fires on Orders-Service',
+      narrator: 'It\'s 3:07 AM. The orders-service just started returning 500s. Customers can\'t checkout. Revenue is bleeding at $12,000 per minute. The OpsAgent wakes up and begins triage.',
       icon: <AlertTriangle className="h-5 w-5" />,
       route: '/',
       content: (
@@ -69,16 +69,16 @@ export function DemoPage() {
             </div>
           </div>
           <p className="text-xs text-text-dim italic">
-            But our system is already awake. The OpsAgent detected the anomaly 30 seconds ago and is already investigating...
+            The OpsAgent detected the anomaly instantly and is already investigating...
           </p>
         </div>
       ),
     },
     {
       id: 1,
-      time: '3:02 AM',
-      title: 'OpsAgent Searches Past Incidents',
-      narrator: 'The OpsAgent runs a FORK/FUSE/RERANK pipeline -- a single ES|QL query that does hybrid search, RRF fusion, and ML reranking. No Python. No LangChain. Just ES|QL.',
+      time: '3:07:30 AM',
+      title: 'OpsAgent Triages with FORK/FUSE',
+      narrator: 'The OpsAgent runs a FORK/FUSE/RERANK pipeline -- a single ES|QL query that does hybrid search, RRF fusion, and ML reranking. No Python. No LangChain. Just ES|QL. It finds 3 similar past incidents in under a second.',
       icon: <GitBranch className="h-5 w-5" />,
       route: '/incident',
       hiddenGem: 'FORK/FUSE/RERANK',
@@ -94,8 +94,8 @@ export function DemoPage() {
     },
     {
       id: 2,
-      time: '3:03 AM',
-      title: 'Root Cause: The Surprising Error',
+      time: '3:08 AM',
+      title: 'Root Cause: connection_pool_exhausted',
       narrator: 'The agent doesn\'t look for the most COMMON error. It uses significant_terms to find the most STATISTICALLY UNUSUAL one. The root cause isn\'t "timeout_error" (2,341 occurrences) -- it\'s "connection_pool_exhausted" (score: 97.1).',
       icon: <BarChart3 className="h-5 w-5" />,
       route: '/incident',
@@ -122,9 +122,73 @@ export function DemoPage() {
     },
     {
       id: 3,
-      time: '3:04 AM',
-      title: 'Error Rate Accelerating',
-      narrator: 'Pipeline aggregations (derivative + cumulative_sum) show the error rate isn\'t just rising -- it\'s accelerating at +22%/min. Without intervention: total failure in 8 minutes.',
+      time: '3:08:30 AM',
+      title: 'Blast Radius Mapped',
+      narrator: 'The agent maps the cascading failure across 5 services. The critical path: api-gateway -> orders-service -> payment-gateway. PostgreSQL connection pool is the epicenter.',
+      icon: <Share2 className="h-5 w-5" />,
+      route: '/blast-radius',
+      content: (
+        <div className="space-y-4">
+          <div className="grid grid-cols-5 gap-2">
+            {[
+              { name: 'orders-service', status: 'DOWN', color: '#ff4444' },
+              { name: 'payment-gateway', status: 'DEGRADED', color: '#ff8c00' },
+              { name: 'cart-service', status: 'DEGRADED', color: '#ff8c00' },
+              { name: 'api-gateway', status: 'DEGRADED', color: '#ffd000' },
+              { name: 'PostgreSQL', status: 'SATURATED', color: '#ff4444' },
+            ].map(s => (
+              <div key={s.name} className="rounded-lg border p-2 text-center" style={{ borderColor: `${s.color}40`, backgroundColor: `${s.color}10` }}>
+                <p className="text-[10px] font-mono font-bold" style={{ color: s.color }}>{s.status}</p>
+                <p className="text-[9px] text-text-dim mt-0.5">{s.name}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-text-muted">
+            <strong className="text-critical">5 services affected</strong>. Root cause: PostgreSQL connection pool maxed at 20 connections. Cascading through orders-service to payment-gateway and cart-service.
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 4,
+      time: '3:09 AM',
+      title: '3 Alert Rules Matched',
+      narrator: 'We don\'t search FOR alerts -- alerts search for INCIDENTS. The incident document is percolated against 18 stored rules. 3 match instantly. The team gets notified.',
+      icon: <ArrowRightLeft className="h-5 w-5" />,
+      route: '/alerts',
+      hiddenGem: 'Percolate Queries',
+      content: (
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 justify-center">
+            <div className="rounded-lg border border-critical/30 bg-critical-bg px-4 py-3 text-center">
+              <p className="text-[10px] text-text-dim">Incident</p>
+              <p className="text-sm font-mono text-critical font-bold">INC-4091</p>
+            </div>
+            <div className="text-text-dim">{"\u2192"} percolated {"\u2192"}</div>
+            <div className="rounded-lg border border-border bg-surface-2 px-4 py-3 text-center">
+              <p className="text-[10px] text-text-dim">18 stored rules</p>
+              <p className="text-sm font-mono text-agent-amber font-bold">3 matches</p>
+            </div>
+            <div className="text-text-dim">{"\u2192"} notified {"\u2192"}</div>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5 rounded border border-agent-amber/30 bg-agent-amber/10 px-2 py-1">
+                <MessageSquare className="h-3 w-3 text-agent-amber" />
+                <span className="text-[10px] text-agent-amber">Slack #incidents</span>
+              </div>
+              <div className="flex items-center gap-1.5 rounded border border-agent-purple/30 bg-agent-purple/10 px-2 py-1">
+                <Ticket className="h-3 w-3 text-agent-purple" />
+                <span className="text-[10px] text-agent-purple">Jira OPS-2847</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 5,
+      time: '3:09:30 AM',
+      title: 'Error Rate Accelerating -- Full Outage in 12 min',
+      narrator: 'Pipeline aggregations (derivative + cumulative_sum) show the error rate isn\'t just rising -- it\'s accelerating at +22%/min. Without intervention: predicted full outage in 12 minutes. The SRE wakes up to a Slack message with full context.',
       icon: <TrendingUp className="h-5 w-5" />,
       route: '/incident',
       hiddenGem: 'Pipeline Aggregations',
@@ -137,71 +201,20 @@ export function DemoPage() {
             </div>
             <div className="rounded-lg border border-high/30 bg-high-bg px-4 py-3 text-center">
               <span className="text-[10px] text-text-dim">Acceleration</span>
-              <p className="text-xl font-bold font-mono text-high">+4.2%/min\u00B2</p>
+              <p className="text-xl font-bold font-mono text-high">+4.2%/min{"\u00B2"}</p>
             </div>
             <div className="rounded-lg border border-critical/30 bg-critical-bg px-4 py-3 text-center">
-              <span className="text-[10px] text-text-dim">SLA Breach</span>
-              <p className="text-xl font-bold font-mono text-critical">~8 min</p>
+              <span className="text-[10px] text-text-dim">Full Outage</span>
+              <p className="text-xl font-bold font-mono text-critical">~12 min</p>
             </div>
           </div>
-          <EsqlBlock query='FROM logs-* | WHERE @timestamp > NOW() - 30 MINUTES AND service.name == "orders-service" AND log.level == "ERROR" | EVAL bucket = DATE_TRUNC(5 MINUTES, @timestamp) | STATS error_count = COUNT(*) BY bucket | SORT bucket ASC' />
-        </div>
-      ),
-    },
-    {
-      id: 4,
-      time: '3:04 AM',
-      title: 'Percolate Matches 3 Alert Rules',
-      narrator: 'We don\'t search FOR alerts -- alerts search for INCIDENTS. The incident document is percolated against 18 stored rules. 3 match instantly. Workflows fire.',
-      icon: <ArrowRightLeft className="h-5 w-5" />,
-      route: '/alerts',
-      hiddenGem: 'Percolate Queries',
-      content: (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 justify-center">
-            <div className="rounded-lg border border-critical/30 bg-critical-bg px-4 py-3 text-center">
-              <p className="text-[10px] text-text-dim">Incident</p>
-              <p className="text-sm font-mono text-critical font-bold">INC-4091</p>
-            </div>
-            <div className="text-text-dim">\u2192 percolated \u2192</div>
-            <div className="rounded-lg border border-border bg-surface-2 px-4 py-3 text-center">
-              <p className="text-[10px] text-text-dim">18 stored rules</p>
-              <p className="text-sm font-mono text-agent-amber font-bold">3 matches</p>
-            </div>
-            <div className="text-text-dim">\u2192 triggers \u2192</div>
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-1.5 rounded border border-agent-amber/30 bg-agent-amber/10 px-2 py-1">
-                <MessageSquare className="h-3 w-3 text-agent-amber" />
-                <span className="text-[10px] text-agent-amber">Slack #incidents</span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded border border-agent-purple/30 bg-agent-purple/10 px-2 py-1">
-                <Ticket className="h-3 w-3 text-agent-purple" />
-                <span className="text-[10px] text-agent-purple">Jira OPS-2847</span>
-              </div>
-              <div className="flex items-center gap-1.5 rounded border border-elastic/30 bg-elastic-bg px-2 py-1">
-                <Zap className="h-3 w-3 text-elastic" />
-                <span className="text-[10px] text-elastic">Audit logged</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      id: 5,
-      time: '3:05 AM',
-      title: 'Self-Healing Activated',
-      narrator: 'The Workflow Engine doesn\'t just alert -- it gives the SRE everything they need. Root cause identified, blast radius mapped, Jira ticket created with full context. The on-call SRE wakes up knowing exactly what happened and what to do. Zero context-switching.',
-      icon: <CheckCircle className="h-5 w-5" />,
-      route: '/agent-activity',
-      content: (
-        <div className="space-y-4">
+
           <div className="rounded-lg border border-elastic/30 bg-elastic-bg p-4">
-            <p className="text-sm font-bold text-elastic mb-3">Autonomous Incident Response</p>
+            <p className="text-sm font-bold text-elastic mb-3">Incident Response Complete</p>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-xs">
                 <CheckCircle className="h-3.5 w-3.5 text-low" />
-                <span className="text-text">Root cause identified: <span className="font-mono text-elastic">connection_pool_exhausted</span></span>
+                <span className="text-text">Root cause: <span className="font-mono text-elastic">connection_pool_exhausted</span></span>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <CheckCircle className="h-3.5 w-3.5 text-low" />
@@ -209,23 +222,15 @@ export function DemoPage() {
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <CheckCircle className="h-3.5 w-3.5 text-low" />
-                <span className="text-text">Jira ticket created: <span className="font-mono text-agent-purple">OPS-2847</span></span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <CheckCircle className="h-3.5 w-3.5 text-low" />
-                <span className="text-text">Full audit logged to <span className="font-mono text-elastic">incident-audit</span></span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <Zap className="h-3.5 w-3.5 text-elastic animate-pulse-glow" />
-                <span className="text-text font-medium">SRE has full context -- zero context-switching needed</span>
+                <span className="text-text">Jira ticket: <span className="font-mono text-agent-purple">OPS-2847</span></span>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-lg border border-elastic/30 bg-surface-2 p-3 text-center">
-              <p className="text-2xl font-bold text-elastic">3m 12s</p>
-              <p className="text-[10px] text-text-dim">Time to Resolution</p>
+              <p className="text-2xl font-bold text-elastic">2m 30s</p>
+              <p className="text-[10px] text-text-dim">Time to Response</p>
               <p className="text-[9px] text-text-dim">vs. 47m manual</p>
             </div>
             <div className="rounded-lg border border-border bg-surface-2 p-3 text-center">
@@ -235,8 +240,8 @@ export function DemoPage() {
             </div>
             <div className="rounded-lg border border-border bg-surface-2 p-3 text-center">
               <p className="text-2xl font-bold text-agent-purple">0</p>
-              <p className="text-[10px] text-text-dim">Humans Woken Up</p>
-              <p className="text-[9px] text-text-dim">SRE slept through it</p>
+              <p className="text-[10px] text-text-dim">Context Switches</p>
+              <p className="text-[9px] text-text-dim">SRE has full context</p>
             </div>
           </div>
         </div>

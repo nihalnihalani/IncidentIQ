@@ -18,7 +18,7 @@ export function DashboardPage() {
               <AlertTriangle className="h-5 w-5 text-critical animate-pulse-glow" />
             </div>
             <div>
-              <p className="text-sm font-bold text-critical">It's 3:05 AM. The orders-service is failing.</p>
+              <p className="text-sm font-bold text-critical">It's 3:07 AM. The orders-service is failing.</p>
               <p className="text-xs text-text-muted mt-0.5">
                 Customers can't checkout. Revenue bleeding at $12k/min. Watch the system detect, investigate, and heal itself.
               </p>
@@ -49,7 +49,7 @@ export function DashboardPage() {
           <MetricCard
             label="Revenue Impact"
             value="$36k"
-            subtitle="Estimated since 03:02 AM"
+            subtitle="Estimated since 03:07 AM"
             icon={<DollarSign className="h-5 w-5" />}
             color="#ff8c00"
             trend="up"
