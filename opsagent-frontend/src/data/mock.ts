@@ -187,7 +187,7 @@ export const agentActivities: AgentActivity[] = [
     target: 'SRE on-call team',
     timestamp: '2026-02-15T03:04:45Z',
     status: 'completed',
-    detail: 'Sent Slack alert to #incidents-critical: "CRITICAL: orders-service down, 34.7% error rate, 5 services affected. Root cause: connection_pool_exhausted (significant_terms score: 97.1). Auto-remediation initiated."',
+    detail: 'Sent Slack alert to #incidents-critical: "CRITICAL: orders-service down, 34.7% error rate, 5 services affected. Root cause: connection_pool_exhausted (significant_terms score: 97.1). Jira OPS-2847 created. Full diagnosis attached."',
     toolUsed: 'slack_notify'
   },
   {
