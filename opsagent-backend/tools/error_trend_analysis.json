@@ -3,7 +3,7 @@
   "type": "esql",
   "description": "Analyze error rate trends over time buckets for a service to determine if the situation is improving, stable, or worsening. Computes error counts, total request counts, and error rate percentage per time bucket. Use this to assess incident trajectory and whether remediation actions are working.",
   "configuration": {
-    "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | EVAL is_error = CASE(log.level == \"ERROR\" OR log.level == \"FATAL\", 1, 0) | EVAL time_bucket = DATE_TRUNC(?bucket_size, @timestamp) | STATS error_count = SUM(is_error), total_count = COUNT(*) BY time_bucket | EVAL error_rate_pct = ROUND(error_count / total_count * 100, 2) | SORT time_bucket ASC | LIMIT 100",
+    "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | EVAL is_error = CASE(log.level IN (\"ERROR\", \"FATAL\"), 1, 0) | EVAL time_bucket = DATE_TRUNC(?bucket_size, @timestamp) | STATS error_count = SUM(is_error), total_count = COUNT(*) BY time_bucket | EVAL error_rate_pct = ROUND(error_count / total_count * 100, 2) | SORT time_bucket ASC | LIMIT 100",
     "params": {
       "service_name": {
         "type": "keyword",

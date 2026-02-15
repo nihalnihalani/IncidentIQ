@@ -11,8 +11,7 @@
       "anomaly_detector",
       "platform.core.search",
       "platform.core.list_indices",
-      "platform.core.get_index_mapping",
-      ".execute_esql"
+      "platform.core.get_index_mapping"
     ]
   }
 }
