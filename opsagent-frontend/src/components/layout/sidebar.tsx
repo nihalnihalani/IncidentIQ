@@ -55,14 +55,16 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Agent Status Footer -- 2 agents */}
+      {/* OpsAgent Status Footer -- 1 agent, 4 phases */}
       <div className="border-t border-border p-3">
         <div className="rounded-lg border border-border bg-surface-2 p-2.5">
-          <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-2">System Status</p>
+          <p className="text-[10px] font-medium text-text-muted uppercase tracking-wider mb-2">OpsAgent Phases</p>
           <div className="space-y-1.5">
             {[
-              { name: 'OpsAgent', color: '#00bfb3', status: 'Investigating' },
-              { name: 'Workflow Engine', color: '#ffaa00', status: 'Executing' },
+              { name: 'Triage', color: '#00bfb3', status: 'Complete' },
+              { name: 'Investigation', color: '#4488ff', status: 'Active' },
+              { name: 'Alert', color: '#ffaa00', status: 'Matched' },
+              { name: 'Action', color: '#8844ff', status: 'Executing' },
             ].map(a => (
               <div key={a.name} className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
@@ -83,7 +85,7 @@ export function Sidebar() {
 
         {/* Story context */}
         <div className="mt-2 rounded-lg border border-critical/20 bg-critical-bg p-2">
-          <p className="text-[10px] font-mono text-critical">03:05 AM -- Active Incident</p>
+          <p className="text-[10px] font-mono text-critical">03:07 AM -- Active Incident</p>
           <p className="text-[10px] text-text-dim mt-0.5">orders-service down</p>
         </div>
       </div>

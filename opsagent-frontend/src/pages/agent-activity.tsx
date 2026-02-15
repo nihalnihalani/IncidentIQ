@@ -3,26 +3,26 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusDot } from '@/components/ui/status-dot'
 import { EsqlBlock } from '@/components/ui/esql-block'
-import { agentActivities, agentColors, agentLabels } from '@/data/mock'
-import type { AgentType } from '@/data/mock'
+import { agentActivities, phaseColors, phaseLabels } from '@/data/mock'
+import type { AgentPhase } from '@/data/mock'
 import { Bot, ArrowRight, RotateCw } from 'lucide-react'
 import { useState } from 'react'
 
-const agentTypes: (AgentType | 'all')[] = ['all', 'opsagent', 'workflow']
+const phaseTypes: (AgentPhase | 'all')[] = ['all', 'triage', 'investigation', 'alert', 'action']
 
 export function AgentActivityPage() {
-  const [filter, setFilter] = useState<AgentType | 'all'>('all')
+  const [filter, setFilter] = useState<AgentPhase | 'all'>('all')
 
   const filtered = filter === 'all'
     ? agentActivities
-    : agentActivities.filter(a => a.agent === filter)
+    : agentActivities.filter(a => a.phase === filter)
 
   return (
     <div className="min-h-screen">
       <TopBar title="Activity Log" />
 
       <div className="p-6 space-y-6">
-        {/* Agent Architecture */}
+        {/* OpsAgent Architecture */}
         <Card glow>
           <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-elastic/15">
@@ -30,50 +30,41 @@ export function AgentActivityPage() {
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-bold text-text">OpsAgent + Workflow Engine Loop</h3>
+                <h3 className="text-sm font-bold text-text">OpsAgent Phase Pipeline</h3>
                 <Badge color="#00bfb3">Architecture</Badge>
               </div>
               <p className="text-xs text-text-muted leading-relaxed">
-                <strong className="text-elastic">OpsAgent</strong> handles interactive triage and investigation
-                (FORK/FUSE/RERANK, significant_terms, Graph Explore, pipeline aggregations).
-                <strong className="text-agent-amber"> Workflow Engine</strong> handles alerts and actions
-                (percolate matching, Slack/Jira notifications, audit logging).
+                A single <strong className="text-elastic">OpsAgent</strong> progresses through 4 phases:
+                <strong className="text-elastic"> Triage</strong> (FORK/FUSE/RERANK search),
+                <strong className="text-agent-blue"> Investigation</strong> (significant_terms, blast radius, pipeline aggs),
+                <strong className="text-agent-amber"> Alert</strong> (percolate matching),
+                <strong className="text-agent-purple"> Action</strong> (Slack/Jira/audit).
               </p>
             </div>
           </div>
 
-          {/* Agent Flow */}
-          <div className="mt-4 flex items-center justify-center gap-3">
-            <div
-              className="flex items-center gap-1.5 rounded-lg border px-4 py-2.5"
-              style={{ borderColor: `${agentColors.opsagent}40`, backgroundColor: `${agentColors.opsagent}10` }}
-            >
-              <Bot className="h-4 w-4" style={{ color: agentColors.opsagent }} />
-              <div>
-                <span className="text-xs font-bold" style={{ color: agentColors.opsagent }}>OpsAgent</span>
-                <p className="text-[9px] text-text-dim">Triage + Investigation</p>
+          {/* Phase Flow */}
+          <div className="mt-4 flex items-center justify-center gap-2">
+            {(['triage', 'investigation', 'alert', 'action'] as AgentPhase[]).map((phase, i) => (
+              <div key={phase} className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-1.5 rounded-lg border px-3 py-2"
+                  style={{ borderColor: `${phaseColors[phase]}40`, backgroundColor: `${phaseColors[phase]}10` }}
+                >
+                  <Bot className="h-3.5 w-3.5" style={{ color: phaseColors[phase] }} />
+                  <span className="text-[10px] font-bold" style={{ color: phaseColors[phase] }}>{phaseLabels[phase].replace(' Phase', '')}</span>
+                </div>
+                {i < 3 && (
+                  <ArrowRight className="h-3.5 w-3.5 text-text-dim" />
+                )}
               </div>
-            </div>
-            <div className="flex flex-col items-center gap-0.5">
-              <ArrowRight className="h-4 w-4 text-text-dim" />
-              <span className="text-[8px] text-text-dim">findings</span>
-            </div>
-            <div
-              className="flex items-center gap-1.5 rounded-lg border px-4 py-2.5"
-              style={{ borderColor: `${agentColors.workflow}40`, backgroundColor: `${agentColors.workflow}10` }}
-            >
-              <Bot className="h-4 w-4" style={{ color: agentColors.workflow }} />
-              <div>
-                <span className="text-xs font-bold" style={{ color: agentColors.workflow }}>Workflow Engine</span>
-                <p className="text-[9px] text-text-dim">Alerts + Actions</p>
-              </div>
-            </div>
+            ))}
           </div>
         </Card>
 
         {/* Filter Tabs */}
         <div className="flex items-center gap-2">
-          {agentTypes.map(type => (
+          {phaseTypes.map(type => (
             <button
               key={type}
               onClick={() => setFilter(type)}
@@ -84,11 +75,11 @@ export function AgentActivityPage() {
               }`}
               style={
                 type !== 'all' && filter === type
-                  ? { backgroundColor: `${agentColors[type as AgentType]}15`, color: agentColors[type as AgentType], borderColor: `${agentColors[type as AgentType]}30` }
+                  ? { backgroundColor: `${phaseColors[type as AgentPhase]}15`, color: phaseColors[type as AgentPhase], borderColor: `${phaseColors[type as AgentPhase]}30` }
                   : undefined
               }
             >
-              {type === 'all' ? 'All Activity' : agentLabels[type as AgentType]}
+              {type === 'all' ? 'All Activity' : phaseLabels[type as AgentPhase]}
             </button>
           ))}
         </div>
@@ -113,14 +104,14 @@ export function AgentActivityPage() {
                     <div
                       className="absolute left-2 top-2 h-4 w-4 rounded-full border-2 flex items-center justify-center"
                       style={{
-                        borderColor: agentColors[a.agent],
-                        backgroundColor: `${agentColors[a.agent]}20`,
+                        borderColor: phaseColors[a.phase],
+                        backgroundColor: `${phaseColors[a.phase]}20`,
                       }}
                     >
                       {a.status === 'running' && (
                         <span
                           className="absolute h-4 w-4 rounded-full animate-ping opacity-30"
-                          style={{ backgroundColor: agentColors[a.agent] }}
+                          style={{ backgroundColor: phaseColors[a.phase] }}
                         />
                       )}
                     </div>
@@ -128,7 +119,7 @@ export function AgentActivityPage() {
                     <div className="rounded-lg border border-border bg-surface-2 p-4 transition-colors hover:bg-surface-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Badge color={agentColors[a.agent]}>{agentLabels[a.agent]}</Badge>
+                          <Badge color={phaseColors[a.phase]}>{phaseLabels[a.phase]}</Badge>
                           <StatusDot status={a.status} size="sm" />
                           <span className="text-xs font-medium text-text">{a.action}</span>
                         </div>

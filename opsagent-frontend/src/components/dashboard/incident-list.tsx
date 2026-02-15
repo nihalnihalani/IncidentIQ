@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusDot } from '@/components/ui/status-dot'
-import { incidents, agentLabels, agentColors } from '@/data/mock'
+import { incidents, phaseLabels, phaseColors } from '@/data/mock'
 import type { Severity } from '@/data/mock'
 import { AlertTriangle, Clock, Layers } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -50,8 +50,8 @@ export function IncidentList() {
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <Badge variant={inc.severity as Severity}>{inc.severity}</Badge>
-                  <Badge color={agentColors[inc.assignedAgent]}>
-                    {agentLabels[inc.assignedAgent]}
+                  <Badge color={phaseColors[inc.phase]}>
+                    {phaseLabels[inc.phase]}
                   </Badge>
                 </div>
               </div>

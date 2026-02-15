@@ -10,8 +10,8 @@ import {
   significantTermsData,
   errorTrendData,
   agentActivities,
-  agentColors,
-  agentLabels,
+  phaseColors,
+  phaseLabels,
 } from '@/data/mock'
 import {
   AreaChart,
@@ -43,12 +43,12 @@ export function IncidentPage() {
               <div className="flex items-center gap-3 mb-2">
                 <Badge variant="critical" pulse>{incident.severity}</Badge>
                 <span className="font-mono text-xs text-text-dim">{incident.id}</span>
-                <Badge color={agentColors[incident.assignedAgent]}>{agentLabels[incident.assignedAgent]}</Badge>
+                <Badge color={phaseColors[incident.phase]}>{phaseLabels[incident.phase]}</Badge>
               </div>
               <h2 className="text-lg font-bold text-text">{incident.title}</h2>
               <p className="mt-1 text-sm text-text-muted">{incident.description}</p>
               <div className="mt-3 flex items-center gap-4 text-xs text-text-dim">
-                <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Started 03:02 AM</span>
+                <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Started 03:07 AM</span>
                 <span className="flex items-center gap-1"><Layers className="h-3 w-3" /> {incident.affectedServices} services affected</span>
                 <span className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> {incident.errorRate}% error rate</span>
               </div>
@@ -63,7 +63,7 @@ export function IncidentPage() {
             <CardTitle>
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4 text-elastic" />
-                FORK \u2192 FUSE \u2192 RERANK Pipeline
+                FORK {"\u2192"} FUSE {"\u2192"} RERANK Pipeline
               </div>
             </CardTitle>
             <Badge color="#00bfb3">Hidden Gem: ES|QL RAG</Badge>
@@ -152,7 +152,7 @@ export function IncidentPage() {
             </CardHeader>
             <CardContent>
               <p className="text-xs text-text-muted mb-3">
-                Pipeline aggregations (derivative + cumulative_sum) show exponential growth. <strong className="text-critical">SLA breach predicted in 8 minutes</strong> without intervention.
+                Pipeline aggregations (derivative + cumulative_sum) show exponential growth. <strong className="text-critical">SLA breach predicted in 12 minutes</strong> without intervention.
               </p>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -170,25 +170,11 @@ export function IncidentPage() {
                       contentStyle={{ backgroundColor: '#12121a', border: '1px solid #2a2a3e', borderRadius: 8, fontSize: 11 }}
                     />
                     <ReferenceLine y={50} stroke="#ff8c00" strokeDasharray="4 4" label={{ value: 'SLA Threshold', fill: '#ff8c00', fontSize: 9, position: 'right' }} />
-                    <Area
-                      type="monotone"
-                      dataKey="baseline"
-                      stroke="#555570"
-                      strokeDasharray="4 4"
-                      fill="none"
-                      strokeWidth={1}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="errors"
-                      stroke="#ff4444"
-                      fill="url(#errorGrad)"
-                      strokeWidth={2}
-                    />
+                    <Area type="monotone" dataKey="baseline" stroke="#555570" strokeDasharray="4 4" fill="none" strokeWidth={1} />
+                    <Area type="monotone" dataKey="errors" stroke="#ff4444" fill="url(#errorGrad)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              {/* Acceleration indicator */}
               <div className="mt-3 flex items-center gap-4">
                 <div className="rounded-lg border border-critical/30 bg-critical-bg px-3 py-1.5">
                   <span className="text-[10px] text-text-dim">Velocity</span>
@@ -196,11 +182,11 @@ export function IncidentPage() {
                 </div>
                 <div className="rounded-lg border border-high/30 bg-high-bg px-3 py-1.5">
                   <span className="text-[10px] text-text-dim">Acceleration</span>
-                  <p className="text-sm font-bold font-mono text-high">+4.2%/min\u00B2</p>
+                  <p className="text-sm font-bold font-mono text-high">+4.2%/min{"\u00B2"}</p>
                 </div>
                 <div className="rounded-lg border border-critical/30 bg-critical-bg px-3 py-1.5">
                   <span className="text-[10px] text-text-dim">SLA Breach In</span>
-                  <p className="text-sm font-bold font-mono text-critical">~8 min</p>
+                  <p className="text-sm font-bold font-mono text-critical">~12 min</p>
                 </div>
               </div>
             </CardContent>
@@ -211,7 +197,7 @@ export function IncidentPage() {
         <Card>
           <CardHeader>
             <CardTitle>Investigation Timeline</CardTitle>
-            <span className="text-xs text-text-dim">OpsAgent + Workflow Engine actions</span>
+            <span className="text-xs text-text-dim">OpsAgent phase progression</span>
           </CardHeader>
           <CardContent>
             <div className="relative">
@@ -221,11 +207,11 @@ export function IncidentPage() {
                   <div key={a.id} className="relative pl-8 animate-fade-in-up">
                     <div
                       className="absolute left-1.5 top-1 h-3 w-3 rounded-full border-2"
-                      style={{ borderColor: agentColors[a.agent], backgroundColor: `${agentColors[a.agent]}30` }}
+                      style={{ borderColor: phaseColors[a.phase], backgroundColor: `${phaseColors[a.phase]}30` }}
                     />
                     <div className="rounded-lg border border-border bg-surface-2 p-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge color={agentColors[a.agent]} className="text-[10px]">{agentLabels[a.agent]}</Badge>
+                        <Badge color={phaseColors[a.phase]} className="text-[10px]">{phaseLabels[a.phase]}</Badge>
                         <span className="text-xs font-medium text-text">{a.action}</span>
                         <StatusDot status={a.status} size="sm" />
                         <span className="ml-auto text-[10px] font-mono text-text-dim">

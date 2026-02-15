@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { StatusDot } from '@/components/ui/status-dot'
-import { agentActivities, agentColors, agentLabels } from '@/data/mock'
+import { agentActivities, phaseColors, phaseLabels } from '@/data/mock'
 import { Bot, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,7 +15,7 @@ export function AgentFeed() {
         <CardTitle>
           <div className="flex items-center gap-2">
             <Bot className="h-4 w-4 text-elastic" />
-            Agent Activity Feed
+            OpsAgent Activity Feed
           </div>
         </CardTitle>
         <button
@@ -37,8 +37,8 @@ export function AgentFeed() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <Badge color={agentColors[a.agent]} className="text-[10px]">
-                  {agentLabels[a.agent]}
+                <Badge color={phaseColors[a.phase]} className="text-[10px]">
+                  {phaseLabels[a.phase]}
                 </Badge>
                 <span className="text-[10px] font-mono text-text-dim">
                   {new Date(a.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}

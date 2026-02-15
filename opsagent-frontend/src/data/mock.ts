@@ -1,6 +1,6 @@
 export type Severity = 'critical' | 'high' | 'medium' | 'low'
 export type IncidentStatus = 'active' | 'investigating' | 'mitigating' | 'resolved'
-export type AgentType = 'opsagent' | 'workflow'
+export type AgentPhase = 'triage' | 'investigation' | 'alert' | 'action'
 
 export interface Incident {
   id: string
@@ -9,7 +9,7 @@ export interface Incident {
   status: IncidentStatus
   service: string
   startedAt: string
-  assignedAgent: AgentType
+  phase: AgentPhase
   affectedServices: number
   errorRate: number
   description: string
@@ -26,7 +26,7 @@ export interface ServiceHealth {
 
 export interface AgentActivity {
   id: string
-  agent: AgentType
+  phase: AgentPhase
   action: string
   target: string
   timestamp: string
@@ -84,8 +84,8 @@ export const incidents: Incident[] = [
     severity: 'critical',
     status: 'investigating',
     service: 'orders-service',
-    startedAt: '2026-02-15T03:02:00Z',
-    assignedAgent: 'opsagent',
+    startedAt: '2026-02-15T03:07:00Z',
+    phase: 'investigation',
     affectedServices: 5,
     errorRate: 34.7,
     description: 'Orders-service returning 500s on all POST /orders endpoints. Customers cannot complete checkout. Revenue impact estimated at $12k/minute.'
@@ -96,8 +96,8 @@ export const incidents: Incident[] = [
     severity: 'high',
     status: 'mitigating',
     service: 'payment-gateway',
-    startedAt: '2026-02-15T03:04:00Z',
-    assignedAgent: 'workflow',
+    startedAt: '2026-02-15T03:08:00Z',
+    phase: 'action',
     affectedServices: 3,
     errorRate: 18.2,
     description: 'Payment gateway timing out waiting for orders-service responses. Connection pool at 97% utilization.'
@@ -108,8 +108,8 @@ export const incidents: Incident[] = [
     severity: 'medium',
     status: 'active',
     service: 'cart-service',
-    startedAt: '2026-02-15T03:06:00Z',
-    assignedAgent: 'opsagent',
+    startedAt: '2026-02-15T03:09:00Z',
+    phase: 'triage',
     affectedServices: 1,
     errorRate: 4.1,
     description: 'Cart service serving stale inventory counts due to orders-service being unavailable.'
@@ -130,10 +130,10 @@ export const services: ServiceHealth[] = [
 export const agentActivities: AgentActivity[] = [
   {
     id: '1',
-    agent: 'opsagent',
+    phase: 'triage',
     action: 'FORK -> FUSE -> RERANK pipeline',
     target: 'orders-service incident knowledge',
-    timestamp: '2026-02-15T03:02:30Z',
+    timestamp: '2026-02-15T03:07:30Z',
     status: 'completed',
     detail: 'Hybrid search across incident-knowledge: lexical + semantic results fused via RRF, reranked with .rerank-v1-elasticsearch. Found 3 similar past incidents involving connection pool exhaustion.',
     toolUsed: 'hybrid_rag_search',
@@ -141,73 +141,73 @@ export const agentActivities: AgentActivity[] = [
   },
   {
     id: '2',
-    agent: 'opsagent',
+    phase: 'investigation',
     action: 'significant_terms -- root cause discovery',
     target: 'orders-service error logs',
-    timestamp: '2026-02-15T03:03:15Z',
+    timestamp: '2026-02-15T03:08:00Z',
     status: 'completed',
     detail: 'Found statistically unusual term: "connection_pool_exhausted" (bg_count: 8, doc_count: 1,247, score: 97.1). This is NOT the most common error -- it is the most SURPRISING one. Root cause: PostgreSQL connection pool maxed at 20 connections.',
     toolUsed: 'anomaly_detector'
   },
   {
     id: '3',
-    agent: 'opsagent',
-    action: 'Service error breakdown -- downstream impact',
+    phase: 'investigation',
+    action: 'Blast radius mapping -- downstream impact',
     target: 'orders-service dependencies',
-    timestamp: '2026-02-15T03:03:45Z',
+    timestamp: '2026-02-15T03:08:30Z',
     status: 'completed',
     detail: 'Checked downstream services for cascading failures. Found 5 affected services: payment-gateway (degraded), cart-service (stale data), notification-service (queue backup), inventory-service (timeout errors). Critical path: payment-service -> orders-service -> checkout.',
     toolUsed: 'service_error_breakdown'
   },
   {
     id: '4',
-    agent: 'opsagent',
+    phase: 'investigation',
     action: 'Error trend prediction -- pipeline aggregations',
     target: 'orders-service error rate',
-    timestamp: '2026-02-15T03:04:10Z',
+    timestamp: '2026-02-15T03:09:00Z',
     status: 'completed',
-    detail: 'Pipeline aggregations (derivative + cumulative_sum) show error rate accelerating at +22%/min. Prediction: complete service failure in 8 minutes. SLA breach imminent.',
+    detail: 'Pipeline aggregations (derivative + cumulative_sum) show error rate accelerating at +22%/min. Prediction: complete service failure in 12 minutes. SLA breach imminent.',
     toolUsed: 'error_trend_analysis',
     esqlQuery: 'FROM logs-* | WHERE @timestamp > NOW() - 30 MINUTES AND service.name == "orders-service" AND log.level == "ERROR" | EVAL bucket = DATE_TRUNC(5 MINUTES, @timestamp) | STATS error_count = COUNT(*) BY bucket | SORT bucket ASC'
   },
   {
     id: '5',
-    agent: 'workflow',
+    phase: 'alert',
     action: 'Percolate -- reverse search match',
     target: 'INC-4091 against alert rules',
-    timestamp: '2026-02-15T03:04:30Z',
+    timestamp: '2026-02-15T03:09:00Z',
     status: 'completed',
-    detail: 'Incident document percolated against 18 stored alert rules. 3 matches: "orders-critical-500s", "cascading-failure-detector", "revenue-impact-alert". Triggering notification workflows.',
+    detail: 'Incident document percolated against 18 stored alert rules. 3 matches: "orders-critical-500s", "cascading-failure-detector", "error-pattern-detector". Triggering notification workflows.',
     toolUsed: 'platform.core.search'
   },
   {
     id: '6',
-    agent: 'workflow',
+    phase: 'action',
     action: 'Slack alert -- #incidents-critical',
     target: 'SRE on-call team',
-    timestamp: '2026-02-15T03:04:45Z',
+    timestamp: '2026-02-15T03:09:15Z',
     status: 'completed',
-    detail: 'Sent Slack alert to #incidents-critical: "CRITICAL: orders-service down, 34.7% error rate, 5 services affected. Root cause: connection_pool_exhausted (significant_terms score: 97.1). Jira OPS-2847 created. Full diagnosis attached."',
+    detail: 'Sent Slack alert to #incidents-critical: "CRITICAL: orders-service down, 34.7% error rate, 5 services affected. Root cause: connection_pool_exhausted (significant_terms score: 97.1)."',
     toolUsed: 'slack_notify'
   },
   {
     id: '7',
-    agent: 'workflow',
+    phase: 'action',
     action: 'Jira ticket created -- OPS-2847',
     target: 'SRE Board',
-    timestamp: '2026-02-15T03:05:00Z',
+    timestamp: '2026-02-15T03:09:30Z',
     status: 'completed',
     detail: 'Created Jira ticket OPS-2847: "orders-service connection pool exhaustion" with full blast radius, significant_terms analysis, and recommended remediation steps attached.',
     toolUsed: 'jira_create'
   },
   {
     id: '8',
-    agent: 'workflow',
+    phase: 'action',
     action: 'Audit log -- incident response recorded',
     target: 'incident-audit index',
-    timestamp: '2026-02-15T03:05:30Z',
+    timestamp: '2026-02-15T03:09:30Z',
     status: 'completed',
-    detail: 'Full incident response audit logged: root cause (connection_pool_exhausted, score 97.1), blast radius (5 services), actions taken (Slack alert, Jira OPS-2847), time to resolution (3m 12s). SRE has full context before touching a keyboard.',
+    detail: 'Full incident response audit logged: root cause (connection_pool_exhausted, score 97.1), blast radius (5 services), actions taken (Slack alert, Jira OPS-2847), time to resolution (2m 30s). SRE has full context before touching a keyboard.',
     toolUsed: 'elasticsearch.index'
   },
 ]
@@ -216,66 +216,66 @@ export const alertRules: AlertRule[] = [
   {
     id: '1',
     name: 'Orders Critical 500s',
-    description: 'Triggers when orders-service 500 error rate exceeds 10%',
-    condition: 'service.name:"orders-service" AND http.status_code:500 AND error_rate:>10',
+    description: 'Triggers when orders-service returns high volume of 500 errors',
+    condition: 'service.name:"orders-service" AND http.response.status_code:500',
     severity: 'critical',
     active: true,
     matchCount: 47,
-    lastTriggered: '2026-02-15T03:02:00Z',
+    lastTriggered: '2026-02-15T03:07:00Z',
     createdBy: 'SRE Team',
-    percolateQuery: '{"bool":{"must":[{"match":{"service.name":"orders-service"}},{"range":{"error_rate":{"gt":10}}}]}}',
+    percolateQuery: '{"bool":{"must":[{"match":{"service.name":"orders-service"}},{"match":{"http.response.status_code":"500"}}]}}',
     workflowAction: 'Slack #incidents-critical + Page on-call'
   },
   {
     id: '2',
     name: 'Cascading Failure Detector',
-    description: 'Detects when 3+ services degrade within 5 minutes',
-    condition: 'affected_services:>=3 AND time_window:"5m"',
+    description: 'Detects when multiple services report errors with the same root cause',
+    condition: 'log.level:"ERROR" AND error.type:"connection_pool_exhausted"',
     severity: 'critical',
     active: true,
     matchCount: 12,
-    lastTriggered: '2026-02-15T03:04:00Z',
+    lastTriggered: '2026-02-15T03:09:00Z',
     createdBy: 'AI-Generated',
-    percolateQuery: '{"bool":{"must":[{"range":{"affected_services":{"gte":3}}},{"range":{"@timestamp":{"gte":"now-5m"}}}]}}',
+    percolateQuery: '{"bool":{"must":[{"match":{"log.level":"ERROR"}},{"match":{"error.type":"connection_pool_exhausted"}}]}}',
     workflowAction: 'Slack + Jira P1 ticket'
   },
   {
     id: '3',
-    name: 'Revenue Impact Alert',
-    description: 'Alert when estimated revenue impact exceeds $5k/minute',
-    condition: 'revenue_impact_per_minute:>5000',
+    name: 'High Error Rate',
+    description: 'Alert when service error messages contain critical patterns',
+    condition: 'log.level:"ERROR" AND message:"connection" AND message:"exhausted"',
     severity: 'critical',
     active: true,
     matchCount: 5,
-    lastTriggered: '2026-02-15T03:02:30Z',
-    createdBy: 'Finance Team',
-    percolateQuery: '{"bool":{"must":[{"range":{"revenue_impact_per_minute":{"gt":5000}}}]}}',
+    lastTriggered: '2026-02-15T03:07:30Z',
+    createdBy: 'SRE Team',
+    percolateQuery: '{"bool":{"must":[{"match":{"log.level":"ERROR"}},{"match":{"message":"connection pool exhausted"}}]}}',
     workflowAction: 'Slack #revenue-alerts + VP Engineering page'
   },
   {
     id: '4',
-    name: 'Connection Pool Saturation',
-    description: 'Detects when DB connection pool utilization exceeds 80%',
-    condition: 'metric.type:"db_pool" AND utilization:>80',
+    name: 'Database Connection Errors',
+    description: 'Detects database connection-related error patterns in logs',
+    condition: 'error.type:"connection_pool_exhausted" AND service.name:"orders-service"',
     severity: 'high',
     active: true,
     matchCount: 89,
-    lastTriggered: '2026-02-15T03:03:00Z',
+    lastTriggered: '2026-02-15T03:08:00Z',
     createdBy: 'DBA Team',
-    percolateQuery: '{"bool":{"must":[{"match":{"metric.type":"db_pool"}},{"range":{"utilization":{"gt":80}}}]}}',
-    workflowAction: 'Auto-scale connection pool + Slack #dba'
+    percolateQuery: '{"bool":{"must":[{"match":{"error.type":"connection_pool_exhausted"}},{"match":{"service.name":"orders-service"}}]}}',
+    workflowAction: 'Slack #dba + investigation ticket'
   },
   {
     id: '5',
     name: 'Unusual Error Pattern',
     description: 'AI-generated: detects statistically unusual error patterns via significant_terms',
-    condition: 'significant_terms(error.type) score > 50',
+    condition: 'log.level:"ERROR" AND error.type EXISTS',
     severity: 'medium',
     active: true,
     matchCount: 3,
-    lastTriggered: '2026-02-15T03:03:15Z',
+    lastTriggered: '2026-02-15T03:08:00Z',
     createdBy: 'OpsAgent AI',
-    percolateQuery: '{"bool":{"must":[{"exists":{"field":"error.type"}},{"script":{"script":"doc[\'anomaly_score\'].value > 50"}}]}}',
+    percolateQuery: '{"bool":{"must":[{"match":{"log.level":"ERROR"}},{"exists":{"field":"error.type"}}]}}',
     workflowAction: 'Jira investigation ticket'
   },
 ]
@@ -311,7 +311,6 @@ export const pipelineSteps: PipelineStep[] = [
   { name: 'fork', label: 'FORK', description: 'Parallel lexical + semantic search branches', status: 'completed', duration: 45, resultCount: 60 },
   { name: 'fuse', label: 'FUSE RRF', description: 'Reciprocal Rank Fusion merges results', status: 'completed', duration: 12, resultCount: 30 },
   { name: 'rerank', label: 'RERANK', description: 'ML model re-scores by relevance', status: 'completed', duration: 89, resultCount: 5 },
-  { name: 'synthesis', label: 'Agent Analysis', description: 'OpsAgent synthesizes findings into report', status: 'completed', duration: 340, resultCount: 1 },
 ]
 
 export const errorTrendData = [
@@ -333,14 +332,18 @@ export const significantTermsData = [
   { term: 'checkout_failed_500', score: 44.6, bgCount: 189, docCount: 287, significance: 'medium' as const },
 ]
 
-export const agentColors: Record<AgentType, string> = {
-  opsagent: '#00bfb3',
-  workflow: '#ffaa00',
+export const phaseColors: Record<AgentPhase, string> = {
+  triage: '#00bfb3',
+  investigation: '#4488ff',
+  alert: '#ffaa00',
+  action: '#8844ff',
 }
 
-export const agentLabels: Record<AgentType, string> = {
-  opsagent: 'OpsAgent',
-  workflow: 'Workflow Engine',
+export const phaseLabels: Record<AgentPhase, string> = {
+  triage: 'Triage Phase',
+  investigation: 'Investigation Phase',
+  alert: 'Alert Phase',
+  action: 'Action Phase',
 }
 
 export const severityColors: Record<Severity, string> = {
