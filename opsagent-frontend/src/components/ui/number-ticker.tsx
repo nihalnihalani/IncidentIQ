@@ -23,7 +23,7 @@ export function NumberTicker({
   const [displayValue, setDisplayValue] = useState(direction === 'up' ? 0 : value)
   const startRef = useRef(direction === 'up' ? 0 : value)
   const startTimeRef = useRef<number | null>(null)
-  const rafRef = useRef<number>()
+  const rafRef = useRef<number | undefined>(undefined)
   const duration = 1200
 
   useEffect(() => {
