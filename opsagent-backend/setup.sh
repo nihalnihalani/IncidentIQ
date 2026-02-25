@@ -78,32 +78,30 @@ kbn_call() {
 }
 
 # ---------------------------------------------------------------------------
-# 1. Create Indices
+# 1. Create Indices (delegates to Python script for full coverage)
 # ---------------------------------------------------------------------------
 create_indices() {
-  log_info "Creating Elasticsearch indices..."
+  log_info "Creating Elasticsearch indices via create-indices.py..."
+  python3 "${SCRIPT_DIR}/scripts/create-indices.py" --no-confirm
+  echo
+  log_info "All indices created."
+}
 
-  log_info "  Creating incident-knowledge index (semantic_text)..."
-  es_call PUT "/incident-knowledge" -d @"${MAPPINGS_DIR}/incident-knowledge.json"
+# ---------------------------------------------------------------------------
+# 1b. Load Data (runbooks, knowledge base, alert rules, service owners, logs, metrics)
+# ---------------------------------------------------------------------------
+load_data() {
+  log_info "Loading data into Elasticsearch..."
+
+  log_info "  Loading runbooks..."
+  python3 "${SCRIPT_DIR}/scripts/load-runbooks.py"
   echo
 
-  log_info "  Creating logs-opsagent index template..."
-  es_call PUT "/_index_template/logs-opsagent-template" -d @"${MAPPINGS_DIR}/logs-template.json"
+  log_info "  Loading incident data (logs + metrics + knowledge base + alerts + service owners)..."
+  python3 "${SCRIPT_DIR}/scripts/generate-all-data.py"
   echo
 
-  log_info "  Creating alert-rules index (percolator)..."
-  es_call PUT "/alert-rules" -d @"${MAPPINGS_DIR}/alert-rules.json"
-  echo
-
-  log_info "  Creating service-owners index..."
-  es_call PUT "/service-owners" -d @"${MAPPINGS_DIR}/service-owners.json"
-  echo
-
-  log_info "  Creating service-health-realtime index (transform destination)..."
-  es_call PUT "/service-health-realtime" -d @"${MAPPINGS_DIR}/service-health-realtime.json"
-  echo
-
-  log_info "All indices created (5 indices + 1 template)."
+  log_info "All data loaded."
 }
 
 # ---------------------------------------------------------------------------
@@ -117,6 +115,10 @@ MVP_TOOLS=(
   "error_trend_analysis"
   "service_error_breakdown"
   "anomaly_detector"
+  "search_runbooks"
+  "search_runbooks_by_symptom"
+  "analyze_host_metrics"
+  "correlate_host_timeline"
 )
 # OPTIONAL tools (skipped in MVP mode - CATEGORIZE and LOOKUP JOIN are risky)
 OPTIONAL_TOOLS=(
@@ -257,31 +259,59 @@ main() {
   echo "=============================================="
   echo
 
+  # Step 1: Check Python 3 is available
+  log_info "Checking prerequisites..."
+  if ! command -v python3 &>/dev/null; then
+    log_error "python3 is required but not found. Install Python 3.9+."
+    exit 1
+  fi
+  log_info "  python3: $(python3 --version)"
+
+  # Step 2: Install Python dependencies
+  log_info "Installing Python dependencies..."
+  python3 -m pip install --quiet requests 2>/dev/null || log_warn "pip install failed -- ensure 'requests' is available"
+  echo
+
+  # Step 3: Create all indices and templates
   create_indices
   echo
+
+  # Step 4: Load data (runbooks, knowledge base, alerts, service owners, logs, metrics)
+  load_data
+  echo
+
+  # Step 5: Register Kibana tools
   register_tools
   echo
+
+  # Step 6: Register Kibana agents
   register_agents
   echo
+
+  # Step 7: Create transform
   create_transform
   echo
+
+  # Step 8: Workflow instructions
   upload_workflows
   echo
 
   log_info "Setup complete!"
   log_info ""
-  log_info "Next steps:"
-  log_info "  1. Run: python3 scripts/generate-demo-data.py  (to load 12K+ demo logs)"
-  log_info "  2. Open Kibana > Agents to see all 3 agents: Triage, Investigation, PostMortem"
-  log_info "  3. Trigger the multi-agent workflow or chat with individual agents"
+  log_info "Data loaded into indices:"
+  log_info "  - service-owners       (4 records)"
+  log_info "  - incident-knowledge   (5 past incidents)"
+  log_info "  - alert-rules          (5 percolator rules)"
+  log_info "  - runbooks             (8 operational runbooks)"
+  log_info "  - logs-opsagent        (~1,100 log entries)"
+  log_info "  - infra-metrics        (~1,080 metric data points)"
   log_info ""
-  log_info "Multi-agent workflow trigger:"
-  log_info '  Workflow: "Multi-Agent Incident Response"'
-  log_info '  Input: affected_service="orders-service", reported_severity="critical"'
+  log_info "Suggested demo prompt:"
+  log_info '  > "Payment service errors are spiking. What is happening?"'
   log_info ""
   log_info "Or chat with individual agents:"
   log_info '  Triage Agent: "Payment service errors are spiking. What is happening?"'
-  log_info '  Investigation Agent: "Deep-dive into orders-service connection pool errors"'
+  log_info '  Investigation Agent: "Deep-dive into order-service connection pool errors"'
   log_info '  PostMortem Agent: "Generate post-mortem for INC-4091"'
 }
 

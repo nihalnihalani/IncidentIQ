@@ -29,6 +29,7 @@ export function EsqlBlock({ query, className }: EsqlBlockProps) {
         <button
           onClick={handleCopy}
           className="text-[10px] text-text-dim hover:text-text transition-colors"
+          aria-label={copied ? 'Query copied to clipboard' : 'Copy ES|QL query to clipboard'}
         >
           {copied ? 'Copied!' : 'Copy'}
         </button>

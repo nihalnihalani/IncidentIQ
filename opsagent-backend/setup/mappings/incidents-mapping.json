@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1
+  },
+  "mappings": {
+    "properties": {
+      "incident.id": {
+        "type": "keyword"
+      },
+      "incident.title": {
+        "type": "text",
+        "fields": {
+          "keyword": { "type": "keyword" }
+        }
+      },
+      "incident.severity": {
+        "type": "keyword"
+      },
+      "incident.status": {
+        "type": "keyword"
+      },
+      "incident.root_cause": {
+        "type": "text"
+      },
+      "incident.affected_services": {
+        "type": "keyword"
+      },
+      "incident.affected_hosts": {
+        "type": "keyword"
+      },
+      "incident.remediation": {
+        "type": "text"
+      },
+      "incident.timeline": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "date" },
+          "event": { "type": "text" },
+          "actor": { "type": "keyword" }
+        }
+      },
+      "incident.created_at": {
+        "type": "date"
+      },
+      "incident.created_by": {
+        "type": "keyword"
+      },
+      "incident.resolved_at": {
+        "type": "date"
+      },
+      "incident.acknowledged_at": {
+        "type": "date"
+      },
+      "incident.duration_minutes": {
+        "type": "integer"
+      }
+    }
+  }
+}

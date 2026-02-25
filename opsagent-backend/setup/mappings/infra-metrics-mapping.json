@@ -1,0 +1,50 @@
+{
+  "index_patterns": ["infra-metrics*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "host.name": {
+          "type": "keyword"
+        },
+        "service.name": {
+          "type": "keyword"
+        },
+        "system.cpu.total.pct": {
+          "type": "float"
+        },
+        "system.memory.used.pct": {
+          "type": "float"
+        },
+        "system.memory.total": {
+          "type": "long"
+        },
+        "system.disk.used.pct": {
+          "type": "float"
+        },
+        "system.network.in.bytes": {
+          "type": "long"
+        },
+        "system.network.out.bytes": {
+          "type": "long"
+        },
+        "container.name": {
+          "type": "keyword"
+        },
+        "kubernetes.pod.name": {
+          "type": "keyword"
+        },
+        "cloud.region": {
+          "type": "keyword"
+        }
+      }
+    }
+  },
+  "priority": 200
+}

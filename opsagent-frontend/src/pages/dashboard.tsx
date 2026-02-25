@@ -3,9 +3,10 @@ import { MetricCard } from '@/components/ui/metric-card'
 import { ServiceHealthGrid } from '@/components/dashboard/service-health-grid'
 import { IncidentList } from '@/components/dashboard/incident-list'
 import { AgentFeed } from '@/components/dashboard/agent-feed'
+import { InfraMetricsPanel } from '@/components/InfraMetricsPanel'
 import { DotPattern } from '@/components/ui/dot-pattern'
 import { BorderBeam } from '@/components/ui/border-beam'
-import { AlertTriangle, Activity, DollarSign, Clock } from 'lucide-react'
+import { AlertTriangle, Activity, DollarSign, Clock, Server } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 function useRevenueTicker(startAmount: number, ratePerSec: number) {
@@ -97,6 +98,15 @@ export function DashboardPage() {
         <div>
           <h3 className="text-sm font-semibold text-text mb-3">Service Health</h3>
           <ServiceHealthGrid />
+        </div>
+
+        {/* Infrastructure Health */}
+        <div>
+          <h3 className="text-sm font-semibold text-text mb-3 flex items-center gap-2">
+            <Server className="h-4 w-4 text-text-dim" />
+            Infrastructure Health
+          </h3>
+          <InfraMetricsPanel />
         </div>
 
         {/* Incidents + Agent Feed side by side */}

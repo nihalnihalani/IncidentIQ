@@ -9,6 +9,9 @@ import {
   Play,
   Shield,
   Bot,
+  MessageSquare,
+  BookOpen,
+  Code2,
 } from 'lucide-react'
 import { GlowingStarsBackground } from '@/components/ui/glowing-stars-background'
 import { isLiveMode } from '@/lib/es-client'
@@ -19,6 +22,9 @@ const navItems = [
   { to: '/alerts', icon: Bell, label: 'Alert Rules' },
   { to: '/blast-radius', icon: Share2, label: 'Blast Radius' },
   { to: '/agent-activity', icon: Activity, label: 'Activity Log' },
+  { to: '/chat', icon: MessageSquare, label: 'Agent Chat' },
+  { to: '/runbooks', icon: BookOpen, label: 'Runbooks' },
+  { to: '/esql-showcase', icon: Code2, label: 'ES|QL Showcase' },
   { to: '/demo', icon: Play, label: 'Demo Mode' },
 ]
 

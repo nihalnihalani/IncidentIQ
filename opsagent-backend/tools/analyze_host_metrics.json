@@ -1,0 +1,9 @@
+{
+  "id": "analyze_host_metrics",
+  "type": "esql",
+  "description": "Aggregate CPU, memory, and disk metrics per host to identify infrastructure stress. Returns the top 10 hosts sorted by peak CPU usage, showing average and maximum values for CPU, memory, and disk utilization. Use this to quickly find which hosts are under the most pressure during an incident.",
+  "configuration": {
+    "query": "FROM infra-metrics | STATS avg_cpu = AVG(system.cpu.total.pct), max_cpu = MAX(system.cpu.total.pct), avg_mem = AVG(system.memory.used.pct), max_mem = MAX(system.memory.used.pct), avg_disk = AVG(system.disk.used.pct) BY host.name | SORT max_cpu DESC | LIMIT 10",
+    "params": {}
+  }
+}

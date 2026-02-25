@@ -39,7 +39,7 @@ export function AgentActivityPage() {
               </div>
               <p className="text-xs text-text-muted leading-relaxed">
                 Three specialized agents orchestrated by an Elastic Workflow:
-                <strong className="text-elastic"> Triage Agent</strong> (FORK/FUSE/RERANK search, severity classification),
+                <strong className="text-elastic"> Triage Agent</strong> (FORK/FUSE/RRF search, severity classification),
                 <strong className="text-agent-blue"> Investigation Agent</strong> (significant_terms, pipeline aggs, percolate, blast radius),
                 <strong className="text-agent-purple"> PostMortem Agent</strong> (blameless post-mortem, Slack/Jira, audit).
                 Each agent has its own tool set and hands off findings to the next.
@@ -84,6 +84,8 @@ export function AgentActivityPage() {
             <button
               key={type}
               onClick={() => setFilter(type)}
+              aria-label={`Filter by ${type === 'all' ? 'all activity' : agentLabels[type as AgentName]}`}
+              aria-pressed={filter === type}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
                 filter === type
                   ? 'bg-elastic/15 text-elastic border border-elastic/30'

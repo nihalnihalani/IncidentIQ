@@ -1,0 +1,14 @@
+{
+  "id": "search_runbooks",
+  "type": "esql",
+  "description": "Search the runbooks knowledge base for remediation procedures matching a category or symptom. Use this to find operational runbooks that describe how to diagnose and fix common infrastructure and application issues.",
+  "configuration": {
+    "query": "FROM runbooks | WHERE TO_LOWER(category) == TO_LOWER(?search_term) | KEEP title, severity, symptoms, root_cause, remediation_steps, prevention | LIMIT 5",
+    "params": {
+      "search_term": {
+        "type": "text",
+        "description": "Category to search (database, microservices, application, infrastructure, security). Case-insensitive."
+      }
+    }
+  }
+}

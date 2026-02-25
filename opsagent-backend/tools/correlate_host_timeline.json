@@ -1,0 +1,14 @@
+{
+  "id": "correlate_host_timeline",
+  "type": "esql",
+  "description": "Time-series view of CPU and memory for a specific host in 5-minute buckets to establish when infrastructure stress began. Returns the most recent 3 hours of data (36 five-minute buckets) sorted newest-first. Use this after analyze_host_metrics identifies a stressed host, to pinpoint the exact onset time and correlate with application-level errors.",
+  "configuration": {
+    "query": "FROM infra-metrics | WHERE host.name == ?host_name | STATS avg_cpu = AVG(system.cpu.total.pct), avg_mem = AVG(system.memory.used.pct) BY bucket = BUCKET(@timestamp, 5 minutes) | SORT bucket DESC | LIMIT 36",
+    "params": {
+      "host_name": {
+        "type": "text",
+        "description": "Hostname to analyze (e.g. db-primary-01, app-01)"
+      }
+    }
+  }
+}

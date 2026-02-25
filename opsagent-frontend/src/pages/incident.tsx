@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { StatusDot } from '@/components/ui/status-dot'
 import { PipelineViz } from '@/components/ui/pipeline-viz'
 import { EsqlBlock } from '@/components/ui/esql-block'
+import { InfraMetricsPanel } from '@/components/InfraMetricsPanel'
 import {
   incidents,
   pipelineSteps,
@@ -27,7 +28,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts'
-import { AlertTriangle, Clock, Layers, TrendingUp, BarChart3, GitBranch, ArrowDownRight, Bot } from 'lucide-react'
+import { AlertTriangle, Clock, Layers, TrendingUp, BarChart3, GitBranch, ArrowDownRight, Bot, Server } from 'lucide-react'
 import { DotPattern } from '@/components/ui/dot-pattern'
 
 export function IncidentPage() {
@@ -63,20 +64,21 @@ export function IncidentPage() {
           </div>
         </Card>
 
-        {/* FORK -> FUSE -> RERANK Pipeline */}
+        {/* FORK -> FUSE RRF -> RERANK Pipeline */}
         <Card>
           <CardHeader>
             <CardTitle>
               <div className="flex items-center gap-2">
                 <GitBranch className="h-4 w-4 text-elastic" />
-                FORK {"\u2192"} FUSE {"\u2192"} RERANK Pipeline
+                FORK {"\u2192"} FUSE RRF Pipeline
               </div>
             </CardTitle>
             <Badge color="#00bfb3">Hidden Gem: ES|QL RAG</Badge>
+            <Badge color="#8844ff">semantic_text enabled</Badge>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-text-muted mb-3">
-              A single ES|QL query performs hybrid search, RRF fusion, and semantic reranking -- no Python, no LangChain, just ES|QL.
+              A single ES|QL query performs hybrid search and RRF fusion -- no Python, no LangChain, just ES|QL. The incident-knowledge index uses semantic_text for automatic vector embedding.
             </p>
             <PipelineViz steps={pipelineSteps} animate delay={300} className="mb-4" />
             <EsqlBlock
@@ -198,6 +200,28 @@ export function IncidentPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Affected Host Metrics */}
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <div className="flex items-center gap-2">
+                <Server className="h-4 w-4 text-critical" />
+                Affected Host Metrics
+              </div>
+            </CardTitle>
+            <Badge variant="critical" pulse>db-primary-01 at 94% CPU</Badge>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-text-muted mb-3">
+              Infrastructure hosts showing critical or elevated resource usage correlated with the incident. <strong className="text-critical font-mono">db-primary-01</strong> is the root cause host -- connection pool exhaustion driven by CPU/memory saturation.
+            </p>
+            <InfraMetricsPanel
+              filterSeverity={['critical', 'elevated']}
+              expandedHosts={['db-primary-01']}
+            />
+          </CardContent>
+        </Card>
 
         {/* Multi-Agent Investigation Timeline */}
         <Card>

@@ -1,0 +1,14 @@
+{
+  "id": "search_runbooks_by_symptom",
+  "type": "esql",
+  "description": "Search runbooks by symptom text matching. Use this to find relevant runbooks when you have a description of the symptoms being observed, such as error messages or performance degradation patterns.",
+  "configuration": {
+    "query": "FROM runbooks METADATA _score | WHERE MATCH(symptoms, ?symptom_text) | KEEP title, severity, symptoms, root_cause, remediation_steps, prevention, _score | SORT _score DESC | LIMIT 5",
+    "params": {
+      "symptom_text": {
+        "type": "text",
+        "description": "Symptom description to search for (e.g. 'connection timeout', 'high CPU', 'certificate errors')"
+      }
+    }
+  }
+}
