@@ -6,7 +6,7 @@
     "query": "FROM runbooks METADATA _score | WHERE MATCH(symptoms, ?symptom_text) | KEEP title, severity, symptoms, root_cause, remediation_steps, prevention, _score | SORT _score DESC | LIMIT 5",
     "params": {
       "symptom_text": {
-        "type": "text",
+        "type": "string",
         "description": "Symptom description to search for (e.g. 'connection timeout', 'high CPU', 'certificate errors')"
       }
     }

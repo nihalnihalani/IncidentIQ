@@ -6,15 +6,15 @@
     "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | EVAL is_error = CASE(log.level IN (\"ERROR\", \"FATAL\"), 1, 0) | EVAL time_bucket = DATE_TRUNC(?bucket_size, @timestamp) | STATS error_count = SUM(is_error), total_count = COUNT(*) BY time_bucket | EVAL error_rate_pct = ROUND(error_count / total_count * 100, 2) | SORT time_bucket ASC | LIMIT 100",
     "params": {
       "service_name": {
-        "type": "keyword",
+        "type": "string",
         "description": "The name of the service to analyze error trends for (e.g., payment-service)"
       },
       "time_range": {
-        "type": "keyword",
+        "type": "string",
         "description": "Total time range to analyze, e.g. '6 hours', '1 day', '3 days'"
       },
       "bucket_size": {
-        "type": "keyword",
+        "type": "string",
         "description": "Time bucket granularity, e.g. '5 minutes', '15 minutes', '1 hour'"
       }
     }

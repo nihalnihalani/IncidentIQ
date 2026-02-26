@@ -3,16 +3,6 @@
   "type": "index_search",
   "description": "Search logs for anomalous patterns using Elasticsearch aggregations including significant_terms to find statistically unusual error types and terms that appear disproportionately in the current time window compared to the overall baseline. Use this to discover the SURPRISING errors driving an incident, not just the most common ones. Also supports pipeline aggregations for trend prediction.",
   "configuration": {
-    "index_pattern": "logs-opsagent-*",
-    "fields": [
-      "service.name",
-      "log.level",
-      "error.type",
-      "error.message",
-      "http.response.status_code",
-      "@timestamp",
-      "host.name",
-      "message"
-    ]
+    "pattern": "logs-opsagent"
   }
 }

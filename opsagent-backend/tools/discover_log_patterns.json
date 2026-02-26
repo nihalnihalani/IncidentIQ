@@ -7,11 +7,11 @@
     "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND @timestamp > NOW() - ?time_range | STATS pattern_count = COUNT(*), first_seen = MIN(@timestamp), last_seen = MAX(@timestamp) BY category = CATEGORIZE(message) | SORT pattern_count DESC | LIMIT ?result_count",
     "params": {
       "service_name": {
-        "type": "keyword",
+        "type": "string",
         "description": "The name of the service to analyze log patterns for"
       },
       "time_range": {
-        "type": "keyword",
+        "type": "string",
         "description": "Time range to look back, e.g. '1 hour', '30 minutes', '6 hours'"
       },
       "result_count": {

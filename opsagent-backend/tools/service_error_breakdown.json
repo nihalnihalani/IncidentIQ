@@ -6,11 +6,11 @@
     "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name AND log.level IN (\"ERROR\", \"FATAL\") AND @timestamp > NOW() - ?time_range | STATS error_count = COUNT(*), last_seen = MAX(@timestamp), sample_message = MAX(error.message) BY error.type | SORT error_count DESC | LIMIT ?result_count",
     "params": {
       "service_name": {
-        "type": "keyword",
+        "type": "string",
         "description": "The name of the service to break down errors for"
       },
       "time_range": {
-        "type": "keyword",
+        "type": "string",
         "description": "Time range to analyze, e.g. '1 hour', '30 minutes', '6 hours'"
       },
       "result_count": {

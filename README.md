@@ -224,6 +224,8 @@ cd self-healing-infrastructure-intelligence
 
 ### 2. Backend Setup (Elasticsearch)
 
+#### Linux / macOS (Bash)
+
 ```bash
 cd opsagent-backend
 
@@ -241,14 +243,46 @@ pip install elasticsearch faker
 python scripts/generate-all-data.py
 ```
 
+#### Windows (PowerShell)
+
+```powershell
+cd opsagent-backend
+
+# Set environment variables
+$env:ES_URL = "https://your-cluster.es.cloud.elastic.co"
+$env:KIBANA_URL = "https://your-kibana.kb.cloud.elastic.co"
+$env:ES_API_KEY = "your-api-key"
+
+# Install Python dependencies
+pip install requests elasticsearch faker
+
+# Generate all demo data (~2,200 docs: logs, metrics, knowledge base, alert rules, runbooks)
+python scripts/generate-all-data.py
+
+# Load runbooks
+python scripts/load-runbooks.py
+
+# Register tools and agents in Kibana Agent Builder
+.\register-tools-and-agents.ps1
+```
+
 ### 3. Frontend Setup (Dashboard)
 
 ```bash
-cd ../opsagent-frontend
+cd opsagent-frontend
 npm install
 npm run dev
 # Open http://localhost:5173
 ```
+
+The frontend `.env` needs your Elasticsearch connection:
+
+```env
+VITE_ES_URL=https://your-cluster.es.cloud.elastic.co
+VITE_ES_API_KEY=your-api-key
+```
+
+Copy `.env.example` to `.env` and fill in your values. The dashboard falls back to mock data if Elasticsearch is unreachable.
 
 ### 4. Run the Demo
 

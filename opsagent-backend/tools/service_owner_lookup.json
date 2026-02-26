@@ -7,7 +7,7 @@
     "query": "FROM logs-opsagent-* | WHERE service.name == ?service_name | STATS log_count = COUNT(*), last_seen = MAX(@timestamp) BY service.name | LOOKUP JOIN service-owners ON service.name | KEEP service.name, owner_team, owner_email, escalation_email, slack_channel, tier, dependencies, runbook_url, log_count, last_seen | LIMIT 1",
     "params": {
       "service_name": {
-        "type": "keyword",
+        "type": "string",
         "description": "The name of the service to look up ownership for"
       }
     }

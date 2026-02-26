@@ -6,7 +6,7 @@
     "query": "FROM runbooks | WHERE TO_LOWER(category) == TO_LOWER(?search_term) | KEEP title, severity, symptoms, root_cause, remediation_steps, prevention | LIMIT 5",
     "params": {
       "search_term": {
-        "type": "text",
+        "type": "string",
         "description": "Category to search (database, microservices, application, infrastructure, security). Case-insensitive."
       }
     }
