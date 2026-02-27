@@ -54,7 +54,7 @@ A React 19 dashboard with 9 pages brings it all to life — animated pipeline vi
 **Backend — Elasticsearch:**
 - Elasticsearch 9.x (Serverless or self-managed)
 - Kibana Agent Builder (GA, Jan 2026) — 4 agents, multi-agent orchestration
-- ES|QL — 10+ parameterized tool queries with FORK/FUSE/RRF
+- ES&#124;QL — 10+ parameterized tool queries with FORK/FUSE/RRF
 - Elastic Workflows — 6-phase YAML automation
 - Transforms — Continuous materialized views for real-time dashboards
 - Python 3.10+ — 12,000+ engineered log entries with per-service error profiles
@@ -72,12 +72,12 @@ We didn't just use Elasticsearch for basic search. We went deep — showcasing *
 
 | # | Hidden Gem | The "Aha!" Moment |
 |---|-----------|-------------------|
-| 1 | **FORK / FUSE / RRF** | One ES\|QL query runs BOTH lexical and semantic search, then fuses results with Reciprocal Rank Fusion. Our Triage Agent finds similar past incidents with incredible relevance — no separate retrieval pipeline needed. |
+| 1 | **FORK / FUSE / RRF** | One ES&#124;QL query runs BOTH lexical and semantic search, then fuses results with Reciprocal Rank Fusion. Our Triage Agent finds similar past incidents with incredible relevance — no separate retrieval pipeline needed. |
 | 2 | **significant_terms** | This is the killer feature. Instead of finding the most *common* errors (symptoms), it finds the most *unusual* errors (root cause). `connection_pool_exhausted` at 70x above baseline? That's your answer — not the `TimeoutException` that fills every log. |
 | 3 | **Percolate Queries** | Normal search: "find documents matching this query." Percolate: "find queries matching this document." We store 18 alert rules, then reverse-search with the incident to determine which rules fire. Scales to thousands of rules. |
 | 4 | **Pipeline Aggregations** | `derivative` + `moving_avg` don't just tell you errors are high — they tell you errors are *accelerating* at +22%/min and will breach SLA in 12 minutes. Predictive, not reactive. |
 | 5 | **semantic_text** | Zero-config vector search. Add a `semantic_text` field, index your document, search semantically. No ML pipeline, no embedding model config. Just works. |
-| 6 | **ES\|QL** | 10+ parameterized queries with `?param` placeholders. The LLM decides *which* tool and *what parameters* — but never writes raw queries. Safe from hallucination by design. |
+| 6 | **ES&#124;QL** | 10+ parameterized queries with `?param` placeholders. The LLM decides *which* tool and *what parameters* — but never writes raw queries. Safe from hallucination by design. |
 | 7 | **Agent Builder** | 4 agents with distinct tool sets and system prompts. Multi-agent orchestration where each agent has a clear mission. Not one giant prompt trying to do everything. |
 | 8 | **Elastic Workflows** | 6-phase YAML that gathers data in parallel, calls agents sequentially with handoffs via `{{ steps.*.output.content }}`, routes notifications by severity, and logs everything. |
 | 9 | **Transforms** | `service-health-summary` continuously materializes service health from raw logs. Dashboard loads in <1ms. No query-time aggregation. |
@@ -86,9 +86,9 @@ We didn't just use Elasticsearch for basic search. We went deep — showcasing *
 
 ## Agent Builder Features We Loved
 
-**1. FORK / FUSE / RRF in ES|QL** — This was the moment we knew Agent Builder was special. Multi-strategy hybrid search in a *single query*? We went from building a custom retrieval pipeline to a one-liner that fuses lexical and semantic results with Reciprocal Rank Fusion. The Triage Agent finds similar past incidents with relevance we couldn't achieve with either strategy alone.
+**1. FORK / FUSE / RRF in ES&#124;QL** — This was the moment we knew Agent Builder was special. Multi-strategy hybrid search in a *single query*? We went from building a custom retrieval pipeline to a one-liner that fuses lexical and semantic results with Reciprocal Rank Fusion. The Triage Agent finds similar past incidents with relevance we couldn't achieve with either strategy alone.
 
-**2. Pre-built ES|QL Tools with `?param` Placeholders** — Our #1 concern was LLM hallucination. Agents love to mix ES|QL and SQL syntax. Agent Builder solved this elegantly: define tools as parameterized queries, let the LLM choose *which* tool and *what parameters*, but never let it write raw queries. Every tool is pre-tested. No hallucinated syntax. Problem solved.
+**2. Pre-built ES&#124;QL Tools with `?param` Placeholders** — Our #1 concern was LLM hallucination. Agents love to mix ES&#124;QL and SQL syntax. Agent Builder solved this elegantly: define tools as parameterized queries, let the LLM choose *which* tool and *what parameters*, but never let it write raw queries. Every tool is pre-tested. No hallucinated syntax. Problem solved.
 
 **3. Multi-Agent Orchestration via Workflows** — Chaining 3 agents with clean handoffs using `{{ steps.*.output.content }}` template variables was incredibly powerful. Each agent has a focused role, a distinct tool set, and the workflow passes full context between them. It feels like watching a relay race where each runner is a specialist.
 
@@ -96,11 +96,11 @@ We didn't just use Elasticsearch for basic search. We went deep — showcasing *
 
 ## Challenges We Ran Into
 
-**The "ES|QL vs SQL" Wars** — Our first prototype let agents write dynamic ES|QL. Disaster. The LLM would generate `SELECT * FROM logs WHERE level = 'ERROR'` instead of `FROM logs-opsagent-* | WHERE log.level == "ERROR"`. Solution: lock down every query as a pre-built tool with `?param` placeholders. The agent reasons about *what to search for*, not *how to write the query*.
+**The "ES&#124;QL vs SQL" Wars** — Our first prototype let agents write dynamic ES&#124;QL. Disaster. The LLM would generate `SELECT * FROM logs WHERE level = 'ERROR'` instead of `FROM logs-opsagent-* | WHERE log.level == "ERROR"`. Solution: lock down every query as a pre-built tool with `?param` placeholders. The agent reasons about *what to search for*, not *how to write the query*.
 
 **Making significant_terms Actually Significant** — The `significant_terms` aggregation is brilliant in theory, but it needs the right data to shine. Random log data produces meaningless results. We spent serious time engineering 12,000+ log entries with distinct per-service error profiles so that the foreground set (incident window) has genuinely different term frequencies than the background set (all historical data). The payoff: `connection_pool_exhausted` lights up at 70x above baseline while `TimeoutException` (which appears in every service) is correctly ignored.
 
-**The Fallback Rabbit Hole** — FORK/FUSE/RRF isn't available on all Elasticsearch tiers. Neither are some ES|QL operators. We ended up building a 3-tier fallback system for every single tool: Tier 1 (full features), Tier 2 (simplified ES|QL), Tier 3 (basic keyword match). Triple the configuration work, but the demo never fails.
+**The Fallback Rabbit Hole** — FORK/FUSE/RRF isn't available on all Elasticsearch tiers. Neither are some ES&#124;QL operators. We ended up building a 3-tier fallback system for every single tool: Tier 1 (full features), Tier 2 (simplified ES&#124;QL), Tier 3 (basic keyword match). Triple the configuration work, but the demo never fails.
 
 **Context Across Agent Handoffs** — The Investigation Agent needs everything the Triage Agent found, and the PostMortem Agent needs everything from both. Dropping even one detail breaks the post-mortem. We learned to structure each agent's output as a complete, self-contained briefing that the next agent can consume without losing nuance.
 
@@ -171,7 +171,7 @@ We didn't just use Elasticsearch for basic search. We went deep — showcasing *
 
 - Elasticsearch 9.x
 - Kibana Agent Builder
-- ES|QL (FORK/FUSE/RRF)
+- ES&#124;QL (FORK/FUSE/RRF)
 - Elastic Workflows
 - Transforms
 - Percolate Queries
