@@ -69,21 +69,125 @@ This project deliberately showcases **9 advanced Elasticsearch features**, many 
 
 ## Architecture
 
-<p align="center">
-  <a href="https://mermaid.live/edit#pako:eNqFVc1u4zYQvucpCOfWRI0lW7ItFAs467jNbn68joscgoVBiSOJsCwaFJ1sgBz6EH2X3vsofZIOSUmWkwrVxSY53_x88w2ZSrrLyGp2QvCbPvWui5gzKBRZSZ6mIMtfInnxaZqDVOTvv8gjRJkQG_33K49oQcnnjJqTW1rsad77HoahstAT65M4zieycO2q3Eepifh4v_w6v7l_fOpd5bRUPCaPQm6SXLyQf_74kwTOIqMlkHsZZ1AqSRUXRe-78aE_xiXEeo-sLk-a3YX71LM4NyQzqij5laoMJC9SU8YCZCxyqoDYgpb7HEqd_NXDtxtyJaWQ5FIC3TDxUuj9B5DPPMY0XgqQ5AYr3-9MiTsdxW1F9urIXqipoynGSJFHEzd7jSRna0nTdQkUSyJzLP9i_vvD1cVyOTc2oKOvlYSCrZHX_LXkJrXSprC251E7O-trLfdFhJmVNfcYu5XYoE5sEJLr4hnJ5Klhs5VfydOCJzymhVorkFsTeMF3kPNC15FKsJjyHY3f9kiupfA3USryWUgJedUszIa3A7aSGtZJDUOyQOCtkAq2rYwuc7oFbE5JlrATVnsLCc94rlN_0IqAtAo9tUq4RheWhB263BqXrZh-HdMPyZ1Qpt5DTQ85jY2sv3BJUUgXC4-gKjegrMtCI15b7oLaXRCS6Z5xhfJI01pp1wWDH0QJInYl1VU5vBosJxep8Ug1qK1dOyheS1N6563EqiVXr-SMJLxgGKF8w7a2OmzMpBCKxHSPGZ2RSM8UkZTxvTYetpi3UfwWL3YnMDuovneDOpuups2QVuo1o3VDX3Em9LCOUVgMNVr-54DeLJvNGc4nll86DSs_GbZc77zf758RPMMMlJaUoYhhnEIwODjAMWuI3BTiJQeWgtUwbFG-PEYB_1AdaJwFqgffkXrwj7QsZAcGpVqNoCP0LdCVmX-wy4DmKnOk_uFbm95K0qJMhNx24VFPR4P80WKka08kdbaAFMVdZuOnXrfojsybZmvt_aw1pKWGArJtfkPC2sfIxUmtS219dIehsdc-xV4fL62-tFg19sON89YAKotdfckc0hhUrkYntZTN0jteVoGCajl-p-f58v5udXU3e-otgcaKuBOUc5lFgkpm1DwhCyTvf7U8Ry03QMNtIkWhNKeNiaff09YN2GGGsrw0A7s0A9thhUI096O57p7xQuiwQyHOYCvILbb5o0nT85lf95zmjpYpsbJ9axiydjFmVs4gIdWrjpdQnoenLPYCLzjHp1lsIDydTNzIjc6xY0KGp0mSnCcY1HkBnmYqjETOjp3Z97Py5fnBAKLGl8uGwMYtXx_y0K-rhY7iAQXWQAPmjdmkE3r0HFUe4r4XsEHjgXpuTJNOD4eXpYL3x1i518D7MBpO-p1w-4pUUKD-uB830NgburjsgprnokIOIx8pa5CD0dD13U5kPfN1xoGfDA-d6wdDGESd4Fo8NXgQTKh7AI_8ydhvg_8F2F4vNQ">
-    <img src="https://mermaid.ink/img/pako:eNqFVc1u4zYQvucpCOfWRI0lW7ItFAs467jNbn68joscgoVBiSOJsCwaFJ1sgBz6EH2X3vsofZIOSUmWkwrVxSY53_x88w2ZSrrLyGp2QvCbPvWui5gzKBRZSZ6mIMtfInnxaZqDVOTvv8gjRJkQG_33K49oQcnnjJqTW1rsad77HoahstAT65M4zieycO2q3Eepifh4v_w6v7l_fOpd5bRUPCaPQm6SXLyQf_74kwTOIqMlkHsZZ1AqSRUXRe-78aE_xiXEeo-sLk-a3YX71LM4NyQzqij5laoMJC9SU8YCZCxyqoDYgpb7HEqd_NXDtxtyJaWQ5FIC3TDxUuj9B5DPPMY0XgqQ5AYr3-9MiTsdxW1F9urIXqipoynGSJFHEzd7jSRna0nTdQkUSyJzLP9i_vvD1cVyOTc2oKOvlYSCrZHX_LXkJrXSprC251E7O-trLfdFhJmVNfcYu5XYoE5sEJLr4hnJ5Klhs5VfydOCJzymhVorkFsTeMF3kPNC15FKsJjyHY3f9kiupfA3USryWUgJedUszIa3A7aSGtZJDUOyQOCtkAq2rYwuc7oFbE5JlrATVnsLCc94rlN_0IqAtAo9tUq4RheWhB263BqXrZh-HdMPyZ1Qpt5DTQ85jY2sv3BJUUgXC4-gKjegrMtCI15b7oLaXRCS6Z5xhfJI01pp1wWDH0QJInYl1VU5vBosJxep8Ug1qK1dOyheS1N6563EqiVXr-SMJLxgGKF8w7a2OmzMpBCKxHSPGZ2RSM8UkZTxvTYetpi3UfwWL3YnMDuovneDOpuups2QVuo1o3VDX3Em9LCOUVgMNVr-54DeLJvNGc4nll86DSs_GbZc77zf758RPMMMlJaUoYhhnEIwODjAMWuI3BTiJQeWgtUwbFG-PEYB_1AdaJwFqgffkXrwj7QsZAcGpVqNoCP0LdCVmX-wy4DmKnOk_uFbm95K0qJMhNx24VFPR4P80WKka08kdbaAFMVdZuOnXrfojsybZmvt_aw1pKWGArJtfkPC2sfIxUmtS219dIehsdc-xV4fL62-tFg19sON89YAKotdfckc0hhUrkYntZTN0jteVoGCajl-p-f58v5udXU3e-otgcaKuBOUc5lFgkpm1DwhCyTvf7U8Ry03QMNtIkWhNKeNiaff09YN2GGGsrw0A7s0A9thhUI096O57p7xQuiwQyHOYCvILbb5o0nT85lf95zmjpYpsbJ9axiydjFmVs4gIdWrjpdQnoenLPYCLzjHp1lsIDydTNzIjc6xY0KGp0mSnCcY1HkBnmYqjETOjp3Z97Py5fnBAKLGl8uGwMYtXx_y0K-rhY7iAQXWQAPmjdmkE3r0HFUe4r4XsEHjgXpuTJNOD4eXpYL3x1i518D7MBpO-p1w-4pUUKD-uB830NgburjsgprnokIOIx8pa5CD0dD13U5kPfN1xoGfDA-d6wdDGESd4Fo8NXgQTKh7AI_8ydhvg_8F2F4vNQ?type=png" alt="IncidentIQ Architecture Diagram" width="100%" />
-  </a>
-</p>
+```mermaid
+graph TD
+    A["Incident Triggers<br/><code>Alert · Webhook · Kibana Chat · Manual</code>"]:::trigger
 
-> *Click the diagram to open in Mermaid Live Editor*
+    A --> P1
+
+    subgraph WORKFLOW["Elastic Workflow — 6-Phase Orchestration"]
+        direction TB
+
+        P1["<b>Phase 1: Data Gathering</b> (parallel)<br/><code>Percolate Alert Rules · ES|QL Error Breakdown · Service Owner Lookup</code>"]:::phase1
+
+        P2["<b>Phase 2: Triage Agent</b><br/><code>hybrid_rag_search (FORK/FUSE/RRF)</code><br/><code>error_trend_analysis · service_error_breakdown · search_runbooks</code>"]:::triage
+
+        P3["<b>Phase 3: Investigation Agent</b><br/><code>significant_terms · Pipeline Aggregations (derivative + moving_avg)</code><br/><code>Percolate Queries · Host Correlation</code>"]:::investigation
+
+        P4["<b>Phase 4: PostMortem Agent</b><br/><code>Blameless Report · Prevention Strategies · Action Items</code>"]:::postmortem
+
+        P5["<b>Phase 5: Notifications</b><br/><code>Slack → owner channel · Jira → P1/P2 tickets</code>"]:::notify
+
+        P6["<b>Phase 6: Audit Logging</b><br/><code>Index to opsagent-incident-log</code>"]:::audit
+
+        P1 --> P2
+        P2 -->|"severity + findings"| P3
+        P3 -->|"root cause + blast radius"| P4
+        P4 --> P5
+        P5 --> P6
+    end
+
+    subgraph DATA["Elasticsearch Data Layer — 8 Indices"]
+        direction LR
+        D1["<code>logs-opsagent-*</code><br/>12,000+ log entries"]:::datanode
+        D2["<code>incident-knowledge</code><br/>semantic_text"]:::datanode
+        D3["<code>alert-rules</code><br/>Percolator"]:::datanode
+        D4["<code>service-owners</code>"]:::datanode
+        D5["<code>service-health-realtime</code><br/>Transforms"]:::datanode
+        D6["<code>runbooks</code>"]:::datanode
+        D7["<code>infra-metrics</code>"]:::datanode
+        D8["<code>opsagent-incident-log</code>"]:::datanode
+    end
+
+    P1 -.->|"reverse search"| D3
+    P1 -.-> D4
+    P2 -.->|"FORK/FUSE/RRF"| D2
+    P2 -.-> D1
+    P2 -.-> D6
+    P3 -.->|"significant_terms"| D1
+    P3 -.->|"percolate"| D3
+    P3 -.-> D7
+    P4 -.-> D2
+    P4 -.-> D6
+    P6 -.-> D8
+
+    subgraph FRONTEND["React 19 Dashboard — 9 Pages"]
+        direction LR
+        F1["Dashboard"]:::frontend
+        F2["Investigation"]:::frontend
+        F3["Blast Radius"]:::frontend
+        F4["Agent Activity"]:::frontend
+        F5["Demo Mode"]:::frontend
+    end
+
+    D5 -.->|"real-time health"| FRONTEND
+
+    style A fill:#dc2626,stroke:#991b1b,color:#fff,font-weight:bold
+    style WORKFLOW fill:#0f0a1e,stroke:#4f46e5,color:#e0e7ff
+    style DATA fill:#0f172a,stroke:#059669,color:#e0e7ff
+    style FRONTEND fill:#0f172a,stroke:#0ea5e9,color:#e0e7ff
+
+    classDef trigger fill:#dc2626,stroke:#991b1b,color:#fff,font-weight:bold
+    classDef phase1 fill:#2563eb,stroke:#1d4ed8,color:#fff
+    classDef triage fill:#7c3aed,stroke:#6d28d9,color:#fff
+    classDef investigation fill:#c026d3,stroke:#a21caf,color:#fff
+    classDef postmortem fill:#0891b2,stroke:#0e7490,color:#fff
+    classDef notify fill:#ea580c,stroke:#c2410c,color:#fff
+    classDef audit fill:#4b5563,stroke:#374151,color:#fff
+    classDef datanode fill:#065f46,stroke:#064e3b,color:#fff
+    classDef frontend fill:#0369a1,stroke:#075985,color:#fff
+```
 
 ### Agent Handoff Flow
 
 Each agent receives the previous agent's complete output via workflow template variables (`{{ steps.*.output.content }}`), ensuring no context is lost between phases:
 
-<p align="center">
-  <img src="https://mermaid.ink/img/pako:eNqNUl1r2zAUfc-vEM7jWtKkydaaUQhsAW_NYtL0yRQjy9eKsCN5V7KzQH_8ru2SrrUH9ZvwOUfnQxJ5uWf32xGjz1aJbM-7yNuh4hLYUoJ23lP7u_l208jbnxJUaYxcxhY4iv3XBCd3q83252T1-PB9st2uvCff950xxStxFnmAaDB2CDqNuebFySo7gLyOPAtYKwFxx0gQeJ6aox4AzxtwYyLGSifG5O8U6a7R23BB5AW6BuuU5E4Z3csYUEarpFaZEly72AEebJuRa3Mg2ywFB6Lh9g0FlLNUJRRKA-NSInS3dAIpoKrpXAP7xA6mVlrGvJYDMlRCCShMwR2w3xXxYKCrgOLvjXVMGEQoeN9TP3-4jryQOGuDDg699OH6vxOXCDWBm86sQzImB02Fa-qAAJVwFULKkoIfoADbVYBQ0sWMbgX8kN_NIz3HZVu3_cfnhmw-FFzk7Jdx7VRnMd6CX5Fk54dCzsLpJJyxnRI5uEEglb6sUuXYvZEs0Cn8eQ8729uxy8u7Z3p7NU3jTjRnpnRKe3Ypa8XZ0WCeFebIqOay3bHmaL1nFrQKQaeAxtB8vLLNk6CqaEzkqao-oBOuR13fjVLTU2dNkIj9BhlrSiVbReGPpzC7vU4uaBWTgz-ef1ksPt9e0PMy6I9hBjfZ1Vtul_mFDXxxcyXObDGbT-n4ws6ybPQXXTJV0A==?type=png" alt="IncidentIQ Agent Handoff Flow" width="100%" />
-</p>
+```mermaid
+sequenceDiagram
+    participant W as Workflow Engine
+    participant T as Triage Agent
+    participant I as Investigation Agent
+    participant PM as PostMortem Agent
+    participant N as Notifications
+
+    W->>W: Phase 1 — Data Gathering (parallel)
+    Note over W: Percolate alert rules<br/>ES|QL error breakdown<br/>Service owner lookup
+
+    W->>T: Phase 2 — Triage
+    T->>T: hybrid_rag_search (FORK/FUSE/RRF)
+    T->>T: error_trend_analysis
+    T->>T: service_error_breakdown
+    T->>T: search_runbooks
+    T-->>W: Severity P1 + initial findings
+
+    W->>I: Phase 3 — Investigation (receives triage output)
+    I->>I: significant_terms → root cause
+    I->>I: pipeline aggregations → error acceleration
+    I->>I: percolate queries → alert matching
+    I->>I: host correlation → infra vs app
+    I-->>W: Root cause + blast radius + remediation
+
+    W->>PM: Phase 4 — PostMortem (receives all findings)
+    PM->>PM: hybrid_rag_search → prevention strategies
+    PM->>PM: Generate blameless report
+    PM-->>W: Post-mortem with action items
+
+    W->>N: Phase 5 — Notifications
+    Note over N: Slack → #payments-team<br/>Jira → P1 ticket OPS-2847
+
+    W->>W: Phase 6 — Audit Log
+    Note over W: Index to opsagent-incident-log
+```
 
 ---
 
