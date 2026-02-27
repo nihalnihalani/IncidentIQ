@@ -69,85 +69,21 @@ This project deliberately showcases **9 advanced Elasticsearch features**, many 
 
 ## Architecture
 
-```
-                         INCIDENT TRIGGERS
-              (Alert / Webhook / Manual / Kibana Chat)
-                                |
-                                v
-   +------------------------------------------------------------+
-   |           WORKFLOW: Multi-Agent Incident Response           |
-   |                  (Elastic Workflows YAML)                   |
-   +------------------------------------------------------------+
-   |                                                             |
-   |  PHASE 1: DATA GATHERING (parallel)                        |
-   |  +----------------+ +------------------+ +---------------+  |
-   |  | Percolate      | | ES|QL Error      | | Service Owner |  |
-   |  | Alert Rules    | | Breakdown        | | Lookup        |  |
-   |  | (reverse search)| | (recent errors) | | (team + deps) |  |
-   |  +-------+--------+ +--------+---------+ +-------+-------+  |
-   |          |                    |                    |          |
-   |          +--------------------+--------------------+          |
-   |                               |                               |
-   |  PHASE 2: TRIAGE AGENT                                       |
-   |  +----------------------------------------------------------+|
-   |  | hybrid_rag_search (FORK/FUSE/RRF) -> similar incidents   ||
-   |  | error_trend_analysis -> is it getting worse?              ||
-   |  | service_error_breakdown -> which errors dominate?         ||
-   |  | search_runbooks -> matching remediation procedures        ||
-   |  | Output: Severity (P1-P4) + initial findings              ||
-   |  +----------------------------+-----------------------------+|
-   |                               | handoff                      |
-   |  PHASE 3: INVESTIGATION AGENT                                |
-   |  +----------------------------------------------------------+|
-   |  | significant_terms -> statistically unusual errors         ||
-   |  | pipeline aggs (derivative + moving_avg) -> acceleration  ||
-   |  | percolate -> which alert rules match?                    ||
-   |  | host metrics + timeline correlation -> infra vs app      ||
-   |  | Output: Root cause + blast radius + remediation          ||
-   |  +----------------------------+-----------------------------+|
-   |                               | handoff                      |
-   |  PHASE 4: POSTMORTEM AGENT                                   |
-   |  +----------------------------------------------------------+|
-   |  | hybrid_rag_search -> prevention strategies from history  ||
-   |  | Output: Blameless post-mortem with action items          ||
-   |  +----------------------------+-----------------------------+|
-   |                               |                               |
-   |  PHASE 5: NOTIFICATION ROUTING                               |
-   |  +----------------+ +------------------+ (P1/P2 only)       |
-   |  | Slack notify   | | Jira ticket      |                    |
-   |  | (owner channel)| | creation         |                    |
-   |  +----------------+ +------------------+                    |
-   |                               |                               |
-   |  PHASE 6: AUDIT LOGGING                                      |
-   |  +----------------------------------------------------------+|
-   |  | Index full response to opsagent-incident-log             ||
-   |  +----------------------------------------------------------+|
-   +------------------------------------------------------------+
-```
+<p align="center">
+  <a href="https://mermaid.live/edit#pako:eNqFVc1u4zYQvucpCOfWRI0lW7ItFAs467jNbn68joscgoVBiSOJsCwaFJ1sgBz6EH2X3vsofZIOSUmWkwrVxSY53_x88w2ZSrrLyGp2QvCbPvWui5gzKBRZSZ6mIMtfInnxaZqDVOTvv8gjRJkQG_33K49oQcnnjJqTW1rsad77HoahstAT65M4zieycO2q3Eepifh4v_w6v7l_fOpd5bRUPCaPQm6SXLyQf_74kwTOIqMlkHsZZ1AqSRUXRe-78aE_xiXEeo-sLk-a3YX71LM4NyQzqij5laoMJC9SU8YCZCxyqoDYgpb7HEqd_NXDtxtyJaWQ5FIC3TDxUuj9B5DPPMY0XgqQ5AYr3-9MiTsdxW1F9urIXqipoynGSJFHEzd7jSRna0nTdQkUSyJzLP9i_vvD1cVyOTc2oKOvlYSCrZHX_LXkJrXSprC251E7O-trLfdFhJmVNfcYu5XYoE5sEJLr4hnJ5Klhs5VfydOCJzymhVorkFsTeMF3kPNC15FKsJjyHY3f9kiupfA3USryWUgJedUszIa3A7aSGtZJDUOyQOCtkAq2rYwuc7oFbE5JlrATVnsLCc94rlN_0IqAtAo9tUq4RheWhB263BqXrZh-HdMPyZ1Qpt5DTQ85jY2sv3BJUUgXC4-gKjegrMtCI15b7oLaXRCS6Z5xhfJI01pp1wWDH0QJInYl1VU5vBosJxep8Ug1qK1dOyheS1N6563EqiVXr-SMJLxgGKF8w7a2OmzMpBCKxHSPGZ2RSM8UkZTxvTYetpi3UfwWL3YnMDuovneDOpuups2QVuo1o3VDX3Em9LCOUVgMNVr-54DeLJvNGc4nll86DSs_GbZc77zf758RPMMMlJaUoYhhnEIwODjAMWuI3BTiJQeWgtUwbFG-PEYB_1AdaJwFqgffkXrwj7QsZAcGpVqNoCP0LdCVmX-wy4DmKnOk_uFbm95K0qJMhNx24VFPR4P80WKka08kdbaAFMVdZuOnXrfojsybZmvt_aw1pKWGArJtfkPC2sfIxUmtS219dIehsdc-xV4fL62-tFg19sON89YAKotdfckc0hhUrkYntZTN0jteVoGCajl-p-f58v5udXU3e-otgcaKuBOUc5lFgkpm1DwhCyTvf7U8Ry03QMNtIkWhNKeNiaff09YN2GGGsrw0A7s0A9thhUI096O57p7xQuiwQyHOYCvILbb5o0nT85lf95zmjpYpsbJ9axiydjFmVs4gIdWrjpdQnoenLPYCLzjHp1lsIDydTNzIjc6xY0KGp0mSnCcY1HkBnmYqjETOjp3Z97Py5fnBAKLGl8uGwMYtXx_y0K-rhY7iAQXWQAPmjdmkE3r0HFUe4r4XsEHjgXpuTJNOD4eXpYL3x1i518D7MBpO-p1w-4pUUKD-uB830NgburjsgprnokIOIx8pa5CD0dD13U5kPfN1xoGfDA-d6wdDGESd4Fo8NXgQTKh7AI_8ydhvg_8F2F4vNQ">
+    <img src="https://mermaid.ink/img/pako:eNqFVc1u4zYQvucpCOfWRI0lW7ItFAs467jNbn68joscgoVBiSOJsCwaFJ1sgBz6EH2X3vsofZIOSUmWkwrVxSY53_x88w2ZSrrLyGp2QvCbPvWui5gzKBRZSZ6mIMtfInnxaZqDVOTvv8gjRJkQG_33K49oQcnnjJqTW1rsad77HoahstAT65M4zieycO2q3Eepifh4v_w6v7l_fOpd5bRUPCaPQm6SXLyQf_74kwTOIqMlkHsZZ1AqSRUXRe-78aE_xiXEeo-sLk-a3YX71LM4NyQzqij5laoMJC9SU8YCZCxyqoDYgpb7HEqd_NXDtxtyJaWQ5FIC3TDxUuj9B5DPPMY0XgqQ5AYr3-9MiTsdxW1F9urIXqipoynGSJFHEzd7jSRna0nTdQkUSyJzLP9i_vvD1cVyOTc2oKOvlYSCrZHX_LXkJrXSprC251E7O-trLfdFhJmVNfcYu5XYoE5sEJLr4hnJ5Klhs5VfydOCJzymhVorkFsTeMF3kPNC15FKsJjyHY3f9kiupfA3USryWUgJedUszIa3A7aSGtZJDUOyQOCtkAq2rYwuc7oFbE5JlrATVnsLCc94rlN_0IqAtAo9tUq4RheWhB263BqXrZh-HdMPyZ1Qpt5DTQ85jY2sv3BJUUgXC4-gKjegrMtCI15b7oLaXRCS6Z5xhfJI01pp1wWDH0QJInYl1VU5vBosJxep8Ug1qK1dOyheS1N6563EqiVXr-SMJLxgGKF8w7a2OmzMpBCKxHSPGZ2RSM8UkZTxvTYetpi3UfwWL3YnMDuovneDOpuups2QVuo1o3VDX3Em9LCOUVgMNVr-54DeLJvNGc4nll86DSs_GbZc77zf758RPMMMlJaUoYhhnEIwODjAMWuI3BTiJQeWgtUwbFG-PEYB_1AdaJwFqgffkXrwj7QsZAcGpVqNoCP0LdCVmX-wy4DmKnOk_uFbm95K0qJMhNx24VFPR4P80WKka08kdbaAFMVdZuOnXrfojsybZmvt_aw1pKWGArJtfkPC2sfIxUmtS219dIehsdc-xV4fL62-tFg19sON89YAKotdfckc0hhUrkYntZTN0jteVoGCajl-p-f58v5udXU3e-otgcaKuBOUc5lFgkpm1DwhCyTvf7U8Ry03QMNtIkWhNKeNiaff09YN2GGGsrw0A7s0A9thhUI096O57p7xQuiwQyHOYCvILbb5o0nT85lf95zmjpYpsbJ9axiydjFmVs4gIdWrjpdQnoenLPYCLzjHp1lsIDydTNzIjc6xY0KGp0mSnCcY1HkBnmYqjETOjp3Z97Py5fnBAKLGl8uGwMYtXx_y0K-rhY7iAQXWQAPmjdmkE3r0HFUe4r4XsEHjgXpuTJNOD4eXpYL3x1i518D7MBpO-p1w-4pUUKD-uB830NgburjsgprnokIOIx8pa5CD0dD13U5kPfN1xoGfDA-d6wdDGESd4Fo8NXgQTKh7AI_8ydhvg_8F2F4vNQ?type=png" alt="IncidentIQ Architecture Diagram" width="100%" />
+  </a>
+</p>
+
+> *Click the diagram to open in Mermaid Live Editor*
 
 ### Agent Handoff Flow
 
 Each agent receives the previous agent's complete output via workflow template variables (`{{ steps.*.output.content }}`), ensuring no context is lost between phases:
 
-```
-Triage Agent                Investigation Agent           PostMortem Agent
-  |                              |                              |
-  |-- hybrid_rag_search          |                              |
-  |-- error_trend_analysis       |                              |
-  |-- service_error_breakdown    |                              |
-  |                              |                              |
-  |--- severity + findings ----->|                              |
-                                 |-- significant_terms          |
-                                 |-- pipeline aggregations      |
-                                 |-- percolate queries          |
-                                 |-- host correlation           |
-                                 |                              |
-                                 |--- root cause + blast ------>|
-                                                                |-- prevention search
-                                                                |-- structured report
-                                                                |
-                                                                +--> Slack + Jira + Audit
-```
+<p align="center">
+  <img src="https://mermaid.ink/img/pako:eNqNUl1r2zAUfc-vEM7jWtKkydaaUQhsAW_NYtL0yRQjy9eKsCN5V7KzQH_8ru2SrrUH9ZvwOUfnQxJ5uWf32xGjz1aJbM-7yNuh4hLYUoJ23lP7u_l208jbnxJUaYxcxhY4iv3XBCd3q83252T1-PB9st2uvCff950xxStxFnmAaDB2CDqNuebFySo7gLyOPAtYKwFxx0gQeJ6aox4AzxtwYyLGSifG5O8U6a7R23BB5AW6BuuU5E4Z3csYUEarpFaZEly72AEebJuRa3Mg2ywFB6Lh9g0FlLNUJRRKA-NSInS3dAIpoKrpXAP7xA6mVlrGvJYDMlRCCShMwR2w3xXxYKCrgOLvjXVMGEQoeN9TP3-4jryQOGuDDg699OH6vxOXCDWBm86sQzImB02Fa-qAAJVwFULKkoIfoADbVYBQ0sWMbgX8kN_NIz3HZVu3_cfnhmw-FFzk7Jdx7VRnMd6CX5Fk54dCzsLpJJyxnRI5uEEglb6sUuXYvZEs0Cn8eQ8729uxy8u7Z3p7NU3jTjRnpnRKe3Ypa8XZ0WCeFebIqOay3bHmaL1nFrQKQaeAxtB8vLLNk6CqaEzkqao-oBOuR13fjVLTU2dNkIj9BhlrSiVbReGPpzC7vU4uaBWTgz-ef1ksPt9e0PMy6I9hBjfZ1Vtul_mFDXxxcyXObDGbT-n4ws6ybPQXXTJV0A==?type=png" alt="IncidentIQ Agent Handoff Flow" width="100%" />
+</p>
 
 ---
 
