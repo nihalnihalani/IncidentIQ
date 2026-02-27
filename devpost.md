@@ -42,12 +42,21 @@ A React 19 dashboard with 9 pages brings it all to life — animated pipeline vi
 
 ### The Agents
 
-| Agent | Personality | Superpower | Tools |
-|-------|-----------|------------|-------|
-| **Triage Agent** | The first responder. Fast, decisive, gets you oriented in 60 seconds. | FORK/FUSE/RRF hybrid search finds similar past incidents instantly | hybrid_rag_search, error_trend_analysis, service_error_breakdown, search_runbooks |
-| **Investigation Agent** | The detective. Doesn't accept "TimeoutException" as root cause — digs deeper. | significant_terms finds what's *statistically unusual*, not what's *common* | anomaly_detector, pipeline_aggregations, percolate_queries, host_correlation |
-| **PostMortem Agent** | The synthesizer. Turns chaos into a structured blameless report. | Combines all findings + prevention strategies from the knowledge base | hybrid_rag_search, blameless_report, search_runbooks |
-| **Ops Agent** | The fallback. Swiss-army knife for when you need one agent to do it all. | Access to all 11 tools in a single pass | All tools combined |
+**Triage Agent** — *The First Responder*
+> Fast, decisive, gets you oriented in 60 seconds. Uses FORK/FUSE/RRF hybrid search to find similar past incidents instantly.
+> **Tools:** hybrid_rag_search · error_trend_analysis · service_error_breakdown · search_runbooks
+
+**Investigation Agent** — *The Detective*
+> Doesn't accept "TimeoutException" as root cause — digs deeper. significant_terms finds what's *statistically unusual*, not what's *common*.
+> **Tools:** anomaly_detector · pipeline_aggregations · percolate_queries · host_correlation
+
+**PostMortem Agent** — *The Synthesizer*
+> Turns chaos into a structured blameless report. Combines all findings + prevention strategies from the knowledge base.
+> **Tools:** hybrid_rag_search · blameless_report · search_runbooks
+
+**Ops Agent** — *The Fallback*
+> Swiss-army knife for when you need one agent to do it all. Access to all 11 tools in a single pass.
+> **Tools:** All tools combined
 
 ### Tech Stack
 
