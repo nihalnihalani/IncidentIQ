@@ -70,82 +70,66 @@ This project deliberately showcases **9 advanced Elasticsearch features**, many 
 ## Architecture
 
 ```mermaid
-graph TD
-    A["Incident Triggers<br/><code>Alert · Webhook · Kibana Chat · Manual</code>"]:::trigger
+graph TB
+    subgraph Triggers["Incident Triggers"]
+        Alert["Alert / Webhook"]
+        Chat["Kibana Chat / Manual"]
+    end
 
-    A --> P1
-
-    subgraph WORKFLOW["Elastic Workflow — 6-Phase Orchestration"]
+    subgraph Workflow["Elastic Workflow — 6-Phase Orchestration"]
         direction TB
-
-        P1["<b>Phase 1: Data Gathering</b> (parallel)<br/><code>Percolate Alert Rules · ES|QL Error Breakdown · Service Owner Lookup</code>"]:::phase1
-
-        P2["<b>Phase 2: Triage Agent</b><br/><code>hybrid_rag_search (FORK/FUSE/RRF)</code><br/><code>error_trend_analysis · service_error_breakdown · search_runbooks</code>"]:::triage
-
-        P3["<b>Phase 3: Investigation Agent</b><br/><code>significant_terms · Pipeline Aggregations (derivative + moving_avg)</code><br/><code>Percolate Queries · Host Correlation</code>"]:::investigation
-
-        P4["<b>Phase 4: PostMortem Agent</b><br/><code>Blameless Report · Prevention Strategies · Action Items</code>"]:::postmortem
-
-        P5["<b>Phase 5: Notifications</b><br/><code>Slack → owner channel · Jira → P1/P2 tickets</code>"]:::notify
-
-        P6["<b>Phase 6: Audit Logging</b><br/><code>Index to opsagent-incident-log</code>"]:::audit
-
-        P1 --> P2
-        P2 -->|"severity + findings"| P3
-        P3 -->|"root cause + blast radius"| P4
-        P4 --> P5
-        P5 --> P6
+        P1["Phase 1: Data Gathering<br/><code>Percolate Rules · ESQL Errors · Service Owners</code>"]
+        P2["Phase 2: Triage Agent<br/><code>hybrid_rag_search · error_trend_analysis</code><br/><code>service_error_breakdown · search_runbooks</code>"]
+        P3["Phase 3: Investigation Agent<br/><code>significant_terms · pipeline_aggregations</code><br/><code>percolate_queries · host_correlation</code>"]
+        P4["Phase 4: PostMortem Agent<br/><code>hybrid_rag_search · blameless_report</code>"]
+        P5["Phase 5: Notifications<br/><code>Slack · Jira P1/P2</code>"]
+        P6["Phase 6: Audit Logging<br/><code>opsagent-incident-log</code>"]
     end
 
-    subgraph DATA["Elasticsearch Data Layer — 8 Indices"]
+    subgraph DataLayer["Elasticsearch Data Layer — 8 Indices"]
         direction LR
-        D1["<code>logs-opsagent-*</code><br/>12,000+ log entries"]:::datanode
-        D2["<code>incident-knowledge</code><br/>semantic_text"]:::datanode
-        D3["<code>alert-rules</code><br/>Percolator"]:::datanode
-        D4["<code>service-owners</code>"]:::datanode
-        D5["<code>service-health-realtime</code><br/>Transforms"]:::datanode
-        D6["<code>runbooks</code>"]:::datanode
-        D7["<code>infra-metrics</code>"]:::datanode
-        D8["<code>opsagent-incident-log</code>"]:::datanode
+        Logs["logs-opsagent-*<br/>12,000+ entries"]
+        Knowledge["incident-knowledge<br/>semantic_text"]
+        AlertRules["alert-rules<br/>Percolator"]
+        Owners["service-owners"]
+        Health["service-health-realtime<br/>Transforms"]
+        Runbooks["runbooks"]
+        Metrics["infra-metrics"]
+        AuditLog["opsagent-incident-log"]
     end
 
-    P1 -.->|"reverse search"| D3
-    P1 -.-> D4
-    P2 -.->|"FORK/FUSE/RRF"| D2
-    P2 -.-> D1
-    P2 -.-> D6
-    P3 -.->|"significant_terms"| D1
-    P3 -.->|"percolate"| D3
-    P3 -.-> D7
-    P4 -.-> D2
-    P4 -.-> D6
-    P6 -.-> D8
-
-    subgraph FRONTEND["React 19 Dashboard — 9 Pages"]
+    subgraph Frontend["React 19 Dashboard — 9 Pages"]
         direction LR
-        F1["Dashboard"]:::frontend
-        F2["Investigation"]:::frontend
-        F3["Blast Radius"]:::frontend
-        F4["Agent Activity"]:::frontend
-        F5["Demo Mode"]:::frontend
+        Dash["Dashboard"]
+        Inv["Investigation"]
+        Blast["Blast Radius"]
+        Activity["Agent Activity"]
+        DemoPage["Demo Mode"]
     end
 
-    D5 -.->|"real-time health"| FRONTEND
+    Triggers -->|"incident detected"| Workflow
+    P1 --> P2
+    P2 -->|"severity + findings"| P3
+    P3 -->|"root cause + blast radius"| P4
+    P4 --> P5
+    P5 --> P6
 
-    style A fill:#dc2626,stroke:#991b1b,color:#fff,font-weight:bold
-    style WORKFLOW fill:#0f0a1e,stroke:#4f46e5,color:#e0e7ff
-    style DATA fill:#0f172a,stroke:#059669,color:#e0e7ff
-    style FRONTEND fill:#0f172a,stroke:#0ea5e9,color:#e0e7ff
+    P1 -.-> AlertRules
+    P1 -.-> Owners
+    P2 -.->|"FORK/FUSE/RRF"| Knowledge
+    P2 -.-> Logs
+    P2 -.-> Runbooks
+    P3 -.->|"significant_terms"| Logs
+    P3 -.->|"percolate"| AlertRules
+    P3 -.-> Metrics
+    P4 -.-> Knowledge
+    P6 -.-> AuditLog
+    Health -.->|"real-time health"| Frontend
 
-    classDef trigger fill:#dc2626,stroke:#991b1b,color:#fff,font-weight:bold
-    classDef phase1 fill:#2563eb,stroke:#1d4ed8,color:#fff
-    classDef triage fill:#7c3aed,stroke:#6d28d9,color:#fff
-    classDef investigation fill:#c026d3,stroke:#a21caf,color:#fff
-    classDef postmortem fill:#0891b2,stroke:#0e7490,color:#fff
-    classDef notify fill:#ea580c,stroke:#c2410c,color:#fff
-    classDef audit fill:#4b5563,stroke:#374151,color:#fff
-    classDef datanode fill:#065f46,stroke:#064e3b,color:#fff
-    classDef frontend fill:#0369a1,stroke:#075985,color:#fff
+    style Triggers fill:#1e1b4b,stroke:#4f46e5,color:#e0e7ff
+    style Workflow fill:#1a1a2e,stroke:#7c3aed,color:#e0e7ff
+    style DataLayer fill:#0f172a,stroke:#059669,color:#e0e7ff
+    style Frontend fill:#0f172a,stroke:#0ea5e9,color:#e0e7ff
 ```
 
 ### Agent Handoff Flow
@@ -160,32 +144,34 @@ sequenceDiagram
     participant PM as PostMortem Agent
     participant N as Notifications
 
-    W->>W: Phase 1 — Data Gathering (parallel)
-    Note over W: Percolate alert rules<br/>ES|QL error breakdown<br/>Service owner lookup
+    W->>W: Phase 1: Data Gathering (parallel)
+    Note over W: Percolate alert rules<br/>ESQL error breakdown<br/>Service owner lookup
 
-    W->>T: Phase 2 — Triage
+    W->>T: Phase 2: Triage
     T->>T: hybrid_rag_search (FORK/FUSE/RRF)
     T->>T: error_trend_analysis
     T->>T: service_error_breakdown
     T->>T: search_runbooks
     T-->>W: Severity P1 + initial findings
 
-    W->>I: Phase 3 — Investigation (receives triage output)
-    I->>I: significant_terms → root cause
-    I->>I: pipeline aggregations → error acceleration
-    I->>I: percolate queries → alert matching
-    I->>I: host correlation → infra vs app
+    W->>I: Phase 3: Investigation
+    Note over I: Receives triage output
+    I->>I: significant_terms (root cause)
+    I->>I: pipeline aggregations (acceleration)
+    I->>I: percolate queries (alert matching)
+    I->>I: host correlation (infra vs app)
     I-->>W: Root cause + blast radius + remediation
 
-    W->>PM: Phase 4 — PostMortem (receives all findings)
-    PM->>PM: hybrid_rag_search → prevention strategies
+    W->>PM: Phase 4: PostMortem
+    Note over PM: Receives all prior findings
+    PM->>PM: hybrid_rag_search (prevention)
     PM->>PM: Generate blameless report
     PM-->>W: Post-mortem with action items
 
-    W->>N: Phase 5 — Notifications
-    Note over N: Slack → #payments-team<br/>Jira → P1 ticket OPS-2847
+    W->>N: Phase 5: Notifications
+    Note over N: Slack: #payments-team<br/>Jira: P1 ticket OPS-2847
 
-    W->>W: Phase 6 — Audit Log
+    W->>W: Phase 6: Audit Log
     Note over W: Index to opsagent-incident-log
 ```
 
